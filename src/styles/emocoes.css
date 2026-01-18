@@ -1,0 +1,78 @@
+.emocao-container {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* COMANDO */
+.command {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 14px;
+  color: #ff9800;
+}
+
+/* VISUAL DA EMOÇÃO */
+.emotion-view {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 18px;
+  border-radius: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 90px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.emotion-view img {
+  max-width: 120px;
+  max-height: 120px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* OPÇÕES */
+.option {
+  background: #ffffff;
+  color: #333333; /* 🔥 TEXTO VISÍVEL */
+  border-radius: 16px;
+  padding: 14px 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.option:active {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(255, 152, 0, 0.7);
+}
+
+.option.correct {
+  background: #c8e6c9;
+  color: #1b5e20;
+}
+
+.option.wrong {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+/* FEEDBACK */
+.message {
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: bold;
+  min-height: 24px;
+}

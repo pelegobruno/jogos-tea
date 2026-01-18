@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Bangers', 'Comic Neue', cursive;
+  background: linear-gradient(135deg, #1cb5e0, #000851);
+  color: white;
+  min-height: 100vh;
+}
+
+/* ===== HEADER GLOBAL ===== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 80px;
+  padding: 0 1rem;
+
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+
+  background: linear-gradient(90deg, #1cb5e0, #000851);
+  z-index: 100;
+}
+
+/* ===== TÍTULO CENTRAL ===== */
+.header-title {
+  text-align: center;
+  font-size: 2rem;
+}
+
+/* ===== BOTÕES ===== */
+.btn-menu,
+.btn-restart {
+  background: #00ff88;
+  border: none;
+  border-radius: 14px;
+  padding: 0.6rem 1.2rem;
+
+  font-family: inherit;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-restart {
+  font-size: 1.6rem;
+}
+
+/* ===== ÁREA PADRÃO DA PÁGINA ===== */
+.page {
+  min-height: 100vh;
+  padding-top: 100px; /* espaço do header */
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
