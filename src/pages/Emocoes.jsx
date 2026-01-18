@@ -44,10 +44,11 @@ export default function Emocoes() {
   const [pontos, setPontos] = useState(0)
   const [finalizado, setFinalizado] = useState(false)
 
-  /* ===== TIMER ABSOLUTAMENTE CONTROLADO ===== */
+  const [bloqueado, setBloqueado] = useState(true) // 🔒 CONTROLE GLOBAL
+
+  /* ===== TIMER ===== */
   function iniciarTimer() {
     clearInterval(timerRef.current)
-
     timerRef.current = setInterval(() => {
       setTempo((prev) => {
         if (prev <= 1) {
@@ -62,10 +63,18 @@ export default function Emocoes() {
 
   function finalizarJogo() {
     setFinalizado(true)
+    setBloqueado(true)
     setMensagem('Jogo finalizado')
+
     if (soundOn && fimRef.current) {
       fimRef.current.currentTime = 0
       fimRef.current.play().catch(() => {})
+      fimRef.current.onended = () => {
+        fimRef.current.onended = null
+        setBloqueado(false)
+      }
+    } else {
+      setBloqueado(false)
     }
   }
 
@@ -83,30 +92,47 @@ export default function Emocoes() {
   }
 
   function verificar(escolha) {
-    if (!correta || finalizado) return
+    if (bloqueado || !correta || finalizado) return
+
+    setBloqueado(true)
 
     if (escolha === correta.nome) {
       setPontos((p) => p + 1)
       setMensagem('Muito bem 🙂')
-      if (soundOn && okRef.current) okRef.current.play().catch(() => {})
-      setTimeout(() => novaRodada(), 800)
+
+      if (soundOn && okRef.current) {
+        okRef.current.play().catch(() => {})
+        okRef.current.onended = () => {
+          okRef.current.onended = null
+          setBloqueado(false)
+          novaRodada()
+        }
+      } else {
+        setBloqueado(false)
+        novaRodada()
+      }
     } else {
       setMensagem('Vamos tentar novamente 🙂')
+
       if (soundOn && errRef.current) {
         errRef.current.currentTime = 0
         errRef.current.play().catch(() => {})
         errRef.current.onended = () => {
           errRef.current.onended = null
+          setBloqueado(false)
           novaRodada(true)
         }
       } else {
+        setBloqueado(false)
         novaRodada(true)
       }
     }
   }
 
-  /* ===== REINÍCIO CONTROLADO ===== */
   function reiniciarJogo() {
+    if (bloqueado) return
+
+    setBloqueado(true)
     clearInterval(timerRef.current)
 
     setTempo(60)
@@ -117,26 +143,40 @@ export default function Emocoes() {
     if (soundOn && reinicioRef.current) {
       reinicioRef.current.currentTime = 0
       reinicioRef.current.play().catch(() => {})
+      reinicioRef.current.onended = () => {
+        reinicioRef.current.onended = null
+        setBloqueado(false)
+        iniciarTimer()
+        novaRodada(true)
+      }
+    } else {
+      setBloqueado(false)
+      iniciarTimer()
+      novaRodada(true)
     }
-
-    iniciarTimer()
-    novaRodada(true)
   }
 
-  /* ===== INÍCIO (UMA ÚNICA VEZ) ===== */
+  /* ===== INÍCIO ===== */
   useEffect(() => {
+    setBloqueado(true)
+
     if (soundOn && introRef.current) {
       introRef.current.play().catch(() => {})
       introRef.current.onended = () => {
+        introRef.current.onended = null
+
         if (musicRef.current) {
           musicRef.current.volume = 0.3
           musicRef.current.play().catch(() => {})
         }
+
+        setBloqueado(false)
         iniciarTimer()
         novaRodada(true)
       }
     } else {
       if (musicRef.current) musicRef.current.play().catch(() => {})
+      setBloqueado(false)
       iniciarTimer()
       novaRodada(true)
     }
@@ -148,10 +188,12 @@ export default function Emocoes() {
   return (
     <>
       <header className="header">
-        <button className="btn-menu" onClick={() => navigate('/')}>
+        <button className="btn-menu" onClick={() => !bloqueado && navigate('/')}>
           Menu
         </button>
+
         <h1 className="header-title">EMOÇÕES</h1>
+
         <button className="btn-restart" onClick={reiniciarJogo}>
           ♻
         </button>
@@ -175,7 +217,7 @@ export default function Emocoes() {
             {opcoes.map((nome) => (
               <div
                 key={nome}
-                className="option"
+                className={`option ${bloqueado ? 'disabled' : ''}`}
                 onClick={() => verificar(nome)}
               >
                 {nome}

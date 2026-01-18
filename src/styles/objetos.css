@@ -1,12 +1,88 @@
-.game-area {
+.objetos-container {
   width: 100%;
-  max-width: 900px;
-  height: 500px;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
 
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
+/* COMANDO */
+.command {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: #ff9800;
+}
+
+/* ALVO */
+.target {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 18px;
+  border-radius: 22px;
+  border: 3px dashed #64b5f6;
 
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+
+  font-size: 36px;
+  font-weight: bold;
+  background: rgba(94, 53, 53, 0.85);
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  justify-items: center;
+}
+
+/* ITENS */
+.item {
+  width: 70px;
+  height: 70px;
+  font-size: 36px;
+
+  background: #4d2323;
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: grab;
+  user-select: none;
+
+  /* 🔥 COR DO CONTEÚDO */
+  color: #1565c0;
+  font-weight: bold;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.item:active {
+  transform: scale(1.05);
+}
+
+/* FEEDBACK */
+.message {
+  margin-top: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  min-height: 24px;
+  color: #ffffff;
+}
+
+/* MOBILE */
+@media (max-width: 400px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .item {
+    width: 64px;
+    height: 64px;
+    font-size: 32px;
+  }
 }

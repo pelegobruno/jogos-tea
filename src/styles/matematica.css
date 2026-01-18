@@ -1,12 +1,65 @@
-.game-area {
+.matematica-container {
   width: 100%;
-  max-width: 900px;
-  height: 500px;
+  max-width: 420px;
+  margin: 0 auto;
+  text-align: center;
+}
 
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
+.equation {
+  font-size: 26px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 18px;
+}
+
+.slot {
+  width: 120px;
+  height: 80px;
+  margin: 0 auto 18px;
+  border-radius: 18px;
+  border: 3px dashed #aed581;
 
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+
+  font-size: 30px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.slot.ok {
+  background: #66bb6a;
+  border-color: #66bb6a;
+}
+
+.answers {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.item {
+  width: 80px;
+  height: 80px;
+  background: #5d4037;
+  border-radius: 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 28px;
+  font-weight: bold;
+  color: #ffffff;
+
+  cursor: grab;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+
+.message {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
 }
