@@ -4,9 +4,12 @@ import '@/styles/menu.css'
 
 export default function Menu() {
   const navigate = useNavigate()
+
+  /* ===== REFS ===== */
   const musicRef = useRef(null)
   const clickRef = useRef(null)
 
+  /* ===== STATE ===== */
   const [soundOn, setSoundOn] = useState(
     localStorage.getItem('soundOn') !== 'false'
   )
@@ -16,15 +19,15 @@ export default function Menu() {
     const music = musicRef.current
     if (!music) return
 
-    music.volume = 0.3 // Volume mais suave para não assustar
+    music.volume = 0.3
 
     if (soundOn) {
       const playPromise = music.play()
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Autoplay bloqueado pelo browser até interação
           const enableAudio = () => {
-            music.play()
+            if (!musicRef.current) return
+            musicRef.current.play().catch(() => {})
             document.removeEventListener('click', enableAudio)
           }
           document.addEventListener('click', enableAudio)
@@ -34,37 +37,76 @@ export default function Menu() {
       music.pause()
     }
 
-    return () => music.pause() // Para a música ao sair do menu
+    return () => {
+      music.pause()
+    }
   }, [soundOn])
 
+  /* ===== NAVEGAÇÃO ===== */
   const openGame = (rota) => {
     if (soundOn && clickRef.current) {
       clickRef.current.currentTime = 0
       clickRef.current.play().catch(() => {})
     }
-    // Adiciona uma pequena classe de animação ou feedback visual antes de navegar
-    setTimeout(() => navigate(rota), 200)
+
+    setTimeout(() => {
+      navigate(rota)
+    }, 200)
   }
 
+  /* ===== SOM ON / OFF ===== */
   const toggleSound = () => {
-    const novoStatus = !soundOn
-    setSoundOn(novoStatus)
-    localStorage.setItem('soundOn', novoStatus)
+    setSoundOn((prev) => {
+      const novo = !prev
+      localStorage.setItem('soundOn', novo)
+      return novo
+    })
   }
 
+  /* ===== JOGOS ===== */
   const jogos = [
-    { rota: '/objetos', icon: '🎯', titulo: 'OBJETOS', desc: 'Pareamento e Atenção', cor: '#FFEBEE' },
-    { rota: '/matematica', icon: '🔢', titulo: 'MATEMÁTICA', desc: 'Contar e Somar', cor: '#E3F2FD' },
-    { rota: '/imitacao', icon: '🖐️', titulo: 'IMITAÇÃO', desc: 'Siga a Sequência', cor: '#E8F5E9' },
-    { rota: '/emocoes', icon: '😊', titulo: 'EMOÇÕES', desc: 'Expressões e Afeto', cor: '#FFF3E0' },
+    {
+      rota: '/objetos',
+      icon: '🎯',
+      titulo: 'OBJETOS',
+      desc: 'Pareamento e Atenção',
+      cor: '#FFEBEE',
+    },
+    {
+      rota: '/matematica',
+      icon: '🔢',
+      titulo: 'MATEMÁTICA',
+      desc: 'Contar e Somar',
+      cor: '#E3F2FD',
+    },
+    {
+      rota: '/imitacao',
+      icon: '🖐️',
+      titulo: 'IMITAÇÃO',
+      desc: 'Siga a Sequência',
+      cor: '#E8F5E9',
+    },
+    {
+      rota: '/emocoes',
+      icon: '😊',
+      titulo: 'EMOÇÕES',
+      desc: 'Expressões e Afeto',
+      cor: '#FFF3E0',
+    },
   ]
 
+  /* ===== JSX ===== */
   return (
     <div className="menu-wrapper">
       <header className="header-menu">
         <h1 className="header-title">🧠 Jogos TEA</h1>
-        <button className={`btn-sound ${!soundOn ? 'off' : ''}`} onClick={toggleSound}>
-          {soundOn ? '🔊' : '                    🔇'}
+
+        <button
+          className={`btn-sound ${!soundOn ? 'off' : ''}`}
+          onClick={toggleSound}
+          aria-label="Ativar ou desativar som"
+        >
+          {soundOn ? '🔊' : '🔇'}
         </button>
       </header>
 
@@ -83,6 +125,7 @@ export default function Menu() {
               style={{ '--card-color': jogo.cor }}
             >
               <div className="card-icon">{jogo.icon}</div>
+
               <div className="card-info">
                 <h3>{jogo.titulo}</h3>
                 <span>{jogo.desc}</span>
@@ -92,8 +135,9 @@ export default function Menu() {
         </div>
       </main>
 
-      <audio ref={musicRef} src="/audio/menu-music.mp3" loop />
-      <audio ref={clickRef} src="/audio/click-soft.mp3" />
+      {/* ÁUDIOS */}
+      <audio ref={musicRef} src="/audio/menu-music.mp3" loop preload="auto" />
+      <audio ref={clickRef} src="/audio/click-soft.mp3" preload="auto" />
     </div>
   )
 }

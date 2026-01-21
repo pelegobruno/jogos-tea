@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/intro.css'
 
@@ -29,6 +29,9 @@ export default function Intro() {
   const flashRef = useRef(null)
   const canvasRef = useRef(null)
 
+  const intervalsRef = useRef([])
+  const rafsRef = useRef([])
+
   /* ===== ÁUDIOS ===== */
   const audio = {
     uka: useRef(null),
@@ -38,7 +41,7 @@ export default function Intro() {
   }
 
   const play = (ref) => {
-    if (!ref.current) return
+    if (!ref?.current) return
     ref.current.currentTime = 0
     ref.current.play().catch(() => {})
   }
@@ -48,11 +51,13 @@ export default function Intro() {
     if (started) return
     setStarted(true)
 
-    startBoxRef.current.classList.add('start-flash-fast')
+    if (startBoxRef.current)
+      startBoxRef.current.classList.add('start-flash-fast')
+
     play(audio.uka)
 
     setTimeout(() => {
-      pressRef.current.style.display = 'none'
+      if (pressRef.current) pressRef.current.style.display = 'none'
       startScene()
     }, 1500)
   }
@@ -69,10 +74,13 @@ export default function Intro() {
 
   /* ===== JOGOS TERAPÊUTICOS ===== */
   const dropTitleSequence = () => {
+    if (!jogosRef.current || !terapRef.current) return
+
     jogosRef.current.classList.add('drop')
     play(audio.metal)
 
     setTimeout(() => {
+      if (!terapRef.current) return
       terapRef.current.classList.add('drop')
       play(audio.metal)
     }, 300)
@@ -81,34 +89,43 @@ export default function Intro() {
     setTimeout(() => piqueNTimes(terapRef.current, 3), 1600)
 
     setTimeout(() => {
+      if (!jogosRef.current || !terapRef.current) return
       jogosRef.current.classList.add('title-idle')
       terapRef.current.classList.add('title-idle')
     }, 3200)
   }
 
   const piqueNTimes = (el, times) => {
+    if (!el) return
     let count = 0
-    const interval = setInterval(() => {
+    const id = setInterval(() => {
+      if (!el) return
       el.classList.remove('pique')
       void el.offsetWidth
       el.classList.add('pique')
       play(audio.metal)
       count++
-      if (count >= times) clearInterval(interval)
+      if (count >= times) clearInterval(id)
     }, 450)
+
+    intervalsRef.current.push(id)
   }
 
   /* ===== FRASES ===== */
   const rotatePhrases = () => {
     let i = 0
-    setInterval(() => {
+    const id = setInterval(() => {
+      if (!subtitleRef.current) return
       i = (i + 1) % phrases.length
       subtitleRef.current.style.opacity = 0
       setTimeout(() => {
+        if (!subtitleRef.current) return
         subtitleRef.current.textContent = phrases[i]
         subtitleRef.current.style.opacity = 1
       }, 400)
     }, 4000)
+
+    intervalsRef.current.push(id)
   }
 
   /* ===== FRASCO ===== */
@@ -116,6 +133,7 @@ export default function Intro() {
     let start = null
 
     const loop = (t) => {
+      if (!liquidRef.current) return
       if (!start) start = t
       const elapsed = (t - start) / 1000
 
@@ -123,24 +141,30 @@ export default function Intro() {
         Math.min((elapsed / TOTAL_TIME) * 100, 100) + '%'
 
       if (elapsed < TOTAL_TIME) {
-        requestAnimationFrame(loop)
+        const id = requestAnimationFrame(loop)
+        rafsRef.current.push(id)
       } else {
         bigBang()
       }
     }
 
-    requestAnimationFrame(loop)
+    const id = requestAnimationFrame(loop)
+    rafsRef.current.push(id)
   }
 
   /* ================= BIG BANG ================= */
   const bigBang = () => {
-    audio.music.current.pause()
+    if (audio.music.current) audio.music.current.pause()
     play(audio.boom)
 
-    flashRef.current.classList.add('boom-flash')
-    flaskRef.current.classList.add('flask-explode')
+    if (flashRef.current)
+      flashRef.current.classList.add('boom-flash')
+
+    if (flaskRef.current)
+      flaskRef.current.classList.add('flask-explode')
 
     ;[jogosRef.current, terapRef.current, subtitleRef.current].forEach((el) => {
+      if (!el) return
       el.classList.remove('title-idle', 'drop')
       el.style.setProperty('--fx', Math.random() * 1000 - 500)
       el.style.setProperty('--fy', Math.random() * -1000 - 200)
@@ -148,30 +172,36 @@ export default function Intro() {
       el.classList.add('fly-away')
     })
 
-    setTimeout(() => {
-      navigate('/menu')
-    }, 2500)
+    setTimeout(() => navigate('/menu'), 2500)
   }
 
   /* ================= AUX ================= */
   const startBubbles = () => {
-    setInterval(() => {
+    const id = setInterval(() => {
+      if (!bubbleLayerRef.current) return
       const b = document.createElement('div')
       b.className = 'bubble'
       b.style.left = Math.random() * 100 + '%'
       bubbleLayerRef.current.appendChild(b)
       setTimeout(() => b.remove(), 3000)
     }, 500)
+
+    intervalsRef.current.push(id)
   }
 
   const startStars = () => {
     const canvas = canvasRef.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
 
     const resize = () => {
+      if (!canvasRef.current) return
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
     }
+
+    resize()
+    window.addEventListener('resize', resize)
 
     const stars = Array.from({ length: 160 }, () => ({
       x: Math.random() * window.innerWidth,
@@ -179,10 +209,8 @@ export default function Intro() {
       s: Math.random() * 0.6 + 0.2,
     }))
 
-    resize()
-    window.addEventListener('resize', resize)
-
     const loop = () => {
+      if (!canvasRef.current) return
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       ctx.fillStyle = 'white'
       stars.forEach((s) => {
@@ -190,11 +218,22 @@ export default function Intro() {
         if (s.y > canvas.height) s.y = 0
         ctx.fillRect(s.x, s.y, 2, 2)
       })
-      requestAnimationFrame(loop)
+      const id = requestAnimationFrame(loop)
+      rafsRef.current.push(id)
     }
 
     loop()
   }
+
+  /* ===== LIMPEZA AO SAIR ===== */
+  useEffect(() => {
+    return () => {
+      intervalsRef.current.forEach(clearInterval)
+      rafsRef.current.forEach(cancelAnimationFrame)
+      intervalsRef.current = []
+      rafsRef.current = []
+    }
+  }, [])
 
   /* ================= JSX ================= */
   return (
