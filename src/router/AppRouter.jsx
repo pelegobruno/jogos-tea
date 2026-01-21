@@ -10,13 +10,8 @@ import Objetos from '@/pages/Objetos'
 export default function AppRouter() {
   return (
     <Routes>
-      {/* INTRO */}
       <Route path="/" element={<Intro />} />
-
-      {/* MENU */}
       <Route path="/menu" element={<Menu />} />
-
-      {/* JOGOS */}
       <Route path="/emocoes" element={<Emocoes />} />
       <Route path="/imitacao" element={<Imitacao />} />
       <Route path="/matematica" element={<Matematica />} />

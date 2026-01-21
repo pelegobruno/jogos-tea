@@ -6,6 +6,7 @@ import './styles/global.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter
+    basename="/jogos-tea"
     future={{
       v7_startTransition: true,
       v7_relativeSplatPath: true,

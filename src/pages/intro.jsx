@@ -225,7 +225,7 @@ export default function Intro() {
     loop()
   }
 
-  /* ===== LIMPEZA AO SAIR ===== */
+  /* ===== LIMPEZA ===== */
   useEffect(() => {
     return () => {
       intervalsRef.current.forEach(clearInterval)
@@ -266,11 +266,15 @@ export default function Intro() {
         </div>
       </main>
 
-      {/* ÁUDIOS */}
-      <audio ref={audio.uka} src="/audio/intro/aku_aku.mp3" preload="auto" />
+      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO GITHUB PAGES) ===== */}
+      <audio
+        ref={audio.uka}
+        src="/jogos-tea/audio/intro/aku_aku.mp3"
+        preload="auto"
+      />
       <audio
         ref={audio.music}
-        src="/audio/intro/1-01. N. Sanity Beach.mp3"
+        src="/jogos-tea/audio/intro/1-01. N. Sanity Beach.mp3"
         preload="auto"
       />
       <audio
@@ -278,7 +282,11 @@ export default function Intro() {
         src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"
         preload="auto"
       />
-      <audio ref={audio.boom} src="/audio/intro/bomba.mp3" preload="auto" />
+      <audio
+        ref={audio.boom}
+        src="/jogos-tea/audio/intro/bomba.mp3"
+        preload="auto"
+      />
     </div>
   )
 }

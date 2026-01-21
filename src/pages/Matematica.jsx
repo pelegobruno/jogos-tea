@@ -31,7 +31,7 @@ function gerarOpcoes(correta) {
 
 export default function Matematica() {
   const navigate = useNavigate()
-  
+
   /* ===== REFERÊNCIAS DE ÁUDIO ===== */
   const introRef = useRef(null)
   const bgRef = useRef(null)
@@ -54,9 +54,9 @@ export default function Matematica() {
 
   /* ===== FUNÇÕES DE SOM ===== */
   const play = useCallback((ref, volume = 1, onEnd) => {
-    if (!soundOn || !ref.current) { 
-      onEnd?.(); 
-      return 
+    if (!soundOn || !ref.current) {
+      onEnd?.()
+      return
     }
     const audio = ref.current
     audio.pause()
@@ -70,7 +70,7 @@ export default function Matematica() {
   }, [soundOn])
 
   const stopAllSounds = useCallback(() => {
-    [introRef, bgRef, okRef, errRef, fimRef, reinicioRef].forEach(ref => {
+    ;[introRef, bgRef, okRef, errRef, fimRef, reinicioRef].forEach(ref => {
       if (ref.current) {
         ref.current.pause()
         ref.current.currentTime = 0
@@ -86,10 +86,19 @@ export default function Matematica() {
     const fruta = FRUTAS[i % FRUTAS.length]
     let r = 0, texto = ''
 
-    if (op === '+') { r = a + b; texto = `${fruta.repeat(a)} + ${fruta.repeat(b)} = ?` }
-    else if (op === '-') { r = a - b; texto = `${fruta.repeat(a)} − ${fruta.repeat(b)} = ?` }
-    else if (op === '*') { r = a * b; texto = `${a} grupos de ${fruta.repeat(b)} = ?` }
-    else if (op === '/') { r = a / b; texto = `${fruta.repeat(a)} ÷ ${b} = ?` }
+    if (op === '+') {
+      r = a + b
+      texto = `${fruta.repeat(a)} + ${fruta.repeat(b)} = ?`
+    } else if (op === '-') {
+      r = a - b
+      texto = `${fruta.repeat(a)} − ${fruta.repeat(b)} = ?`
+    } else if (op === '*') {
+      r = a * b
+      texto = `${a} grupos de ${fruta.repeat(b)} = ?`
+    } else if (op === '/') {
+      r = a / b
+      texto = `${fruta.repeat(a)} ÷ ${b} = ?`
+    }
 
     setResposta(r)
     setEquacao(texto)
@@ -137,7 +146,6 @@ export default function Matematica() {
     setSlot('?')
     setMensagem('Reiniciando...')
 
-    // Toca música de fundo suave
     if (bgRef.current) {
       bgRef.current.volume = 0.05
       bgRef.current.play().catch(() => {})
@@ -171,25 +179,40 @@ export default function Matematica() {
   return (
     <div className="matematica-page">
       <header className="header">
-        <button className="btn-menu" onClick={() => navigate('/menu')}>Menu</button>
+        <button className="btn-menu" onClick={() => navigate('/menu')}>
+          Menu
+        </button>
         <h1 className="header-title">NÚMEROS</h1>
-        <button className="btn-restart" onClick={reiniciarJogo}>♻</button>
+        <button className="btn-restart" onClick={reiniciarJogo}>
+          ♻
+        </button>
       </header>
 
       <div className="progress-container">
-        <div className="progress-bar" style={{ width: `${progresso}%` }}></div>
+        <div
+          className="progress-bar"
+          style={{ width: `${progresso}%` }}
+        ></div>
       </div>
 
       <main className="page">
         <div className="matematica-container">
           <div className="equation-card">{equacao}</div>
 
-          <div className={`slot-box ${slot === '?' ? 'waiting' : slot === resposta ? 'correct' : 'wrong'}`}>
+          <div
+            className={`slot-box ${
+              slot === '?'
+                ? 'waiting'
+                : slot === resposta
+                ? 'correct'
+                : 'wrong'
+            }`}
+          >
             {slot}
           </div>
 
           <div className="answers-grid">
-            {opcoes.map((n) => (
+            {opcoes.map(n => (
               <button
                 key={n}
                 className="answer-item"
@@ -201,16 +224,38 @@ export default function Matematica() {
             ))}
           </div>
 
-          {mensagem && <div className="feedback-message">{mensagem}</div>}
+          {mensagem && (
+            <div className="feedback-message">{mensagem}</div>
+          )}
         </div>
       </main>
 
-      <audio ref={introRef} src="/audio/aila-intro-matematica.mp3" />
-      <audio ref={bgRef} src="/audio/musica-terapeutica.mp3" loop />
-      <audio ref={okRef} src="/audio/aila-muito-bem.mp3" />
-      <audio ref={errRef} src="/audio/aila-tente-novamente.mp3" />
-      <audio ref={fimRef} src="/audio/aila-finalizacao.mp3" />
-      <audio ref={reinicioRef} src="/audio/aila-reinicio.mp3" />
+      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO GITHUB PAGES) ===== */}
+      <audio
+        ref={introRef}
+        src="/jogos-tea/audio/aila-intro-matematica.mp3"
+      />
+      <audio
+        ref={bgRef}
+        src="/jogos-tea/audio/musica-terapeutica.mp3"
+        loop
+      />
+      <audio
+        ref={okRef}
+        src="/jogos-tea/audio/aila-muito-bem.mp3"
+      />
+      <audio
+        ref={errRef}
+        src="/jogos-tea/audio/aila-tente-novamente.mp3"
+      />
+      <audio
+        ref={fimRef}
+        src="/jogos-tea/audio/aila-finalizacao.mp3"
+      />
+      <audio
+        ref={reinicioRef}
+        src="/jogos-tea/audio/aila-reinicio.mp3"
+      />
     </div>
   )
 }

@@ -135,9 +135,18 @@ export default function Menu() {
         </div>
       </main>
 
-      {/* ÁUDIOS */}
-      <audio ref={musicRef} src="/audio/menu-music.mp3" loop preload="auto" />
-      <audio ref={clickRef} src="/audio/click-soft.mp3" preload="auto" />
+      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO GITHUB PAGES) ===== */}
+      <audio
+        ref={musicRef}
+        src="/jogos-tea/audio/menu-music.mp3"
+        loop
+        preload="auto"
+      />
+      <audio
+        ref={clickRef}
+        src="/jogos-tea/audio/click-soft.mp3"
+        preload="auto"
+      />
     </div>
   )
 }

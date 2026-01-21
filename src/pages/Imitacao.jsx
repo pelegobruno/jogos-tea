@@ -41,7 +41,7 @@ export default function Imitacao() {
   }
 
   function stopAllSounds() {
-    [introRef, okRef, errRef, musicRef, restartRef].forEach(ref => {
+    ;[introRef, okRef, errRef, musicRef, restartRef].forEach(ref => {
       if (ref.current) {
         ref.current.pause()
         ref.current.currentTime = 0
@@ -63,7 +63,7 @@ export default function Imitacao() {
   function nextLevel() {
     setAccepting(false)
     userSeqRef.current = []
-    setSequence((prev) => {
+    setSequence(prev => {
       const next = [...prev, Math.floor(Math.random() * 4)]
       setTimeout(() => playSequence(next), 600)
       return next
@@ -130,8 +130,7 @@ export default function Imitacao() {
   /* ===== NAVEGAÇÃO E REINÍCIO ===== */
   const handleBackToMenu = () => {
     stopAllSounds()
-    // Garante o redirecionamento para o Menu.jsx
-    navigate('/menu') 
+    navigate('/menu')
   }
 
   const reiniciarJogo = () => {
@@ -144,7 +143,7 @@ export default function Imitacao() {
     })
   }
 
-  /* ===== CICLO DE VIDA (Ajustado) ===== */
+  /* ===== CICLO DE VIDA ===== */
   useEffect(() => {
     if (musicRef.current) {
       musicRef.current.volume = 0.05
@@ -167,7 +166,11 @@ export default function Imitacao() {
           Menu
         </button>
         <h1 className="header-title">IMITAÇÃO</h1>
-        <button className="btn-restart" onClick={reiniciarJogo} disabled={locked}>
+        <button
+          className="btn-restart"
+          onClick={reiniciarJogo}
+          disabled={locked}
+        >
           ♻
         </button>
       </header>
@@ -191,11 +194,28 @@ export default function Imitacao() {
         </div>
       </main>
 
-      <audio ref={introRef} src="/audio/sequencia/aila-intro.mp3" />
-      <audio ref={okRef} src="/audio/sequencia/aila-muito-bem.mp3" />
-      <audio ref={errRef} src="/audio/sequencia/aila-tente-novamente.mp3" />
-      <audio ref={restartRef} src="/audio/aila-reinicio.mp3" />
-      <audio ref={musicRef} src="/audio/musica-terapeutica.mp3" loop />
+      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO PARA GITHUB PAGES) ===== */}
+      <audio
+        ref={introRef}
+        src="/jogos-tea/audio/sequencia/aila-intro.mp3"
+      />
+      <audio
+        ref={okRef}
+        src="/jogos-tea/audio/sequencia/aila-muito-bem.mp3"
+      />
+      <audio
+        ref={errRef}
+        src="/jogos-tea/audio/sequencia/aila-tente-novamente.mp3"
+      />
+      <audio
+        ref={restartRef}
+        src="/jogos-tea/audio/aila-reinicio.mp3"
+      />
+      <audio
+        ref={musicRef}
+        src="/jogos-tea/audio/musica-terapeutica.mp3"
+        loop
+      />
     </div>
   )
 }
