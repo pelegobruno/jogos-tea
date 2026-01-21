@@ -1,66 +1,119 @@
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@700&display=swap');
+/* Importação de fontes modernas e divertidas */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&family=Poppins:wght@600;800&display=swap');
 
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Remove o brilho ao tocar no celular */
 }
 
 body {
-  font-family: 'Bangers', 'Comic Neue', cursive;
-  background: linear-gradient(135deg, #1cb5e0, #000851);
+  font-family: 'Poppins', 'Comic Neue', sans-serif;
+  background: linear-gradient(135deg, #1cb5e0 0%, #000851 100%);
+  background-attachment: fixed;
   color: white;
   min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.4;
 }
 
-/* ===== HEADER GLOBAL ===== */
+/* ===== HEADER GLOBAL (Design Moderno) ===== */
 .header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-
-  height: 80px;
-  padding: 0 1rem;
-
+  height: 70px;
+  padding: 0 1.5rem;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 80px 1fr 80px; /* Colunas fixas nas pontas para centralizar o título */
   align-items: center;
-
-  background: linear-gradient(90deg, #1cb5e0, #000851);
-  z-index: 100;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px); /* Efeito de vidro fosco */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 1000;
 }
 
-/* ===== TÍTULO CENTRAL ===== */
+/* ===== TÍTULO CENTRAL (Estilo Cartoon) ===== */
 .header-title {
+  font-family: 'Bangers', cursive;
   text-align: center;
-  font-size: 2rem;
+  font-size: 2.2rem;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3);
+  margin: 0;
 }
 
-/* ===== BOTÕES ===== */
+/* ===== BOTÕES GLOBAIS (Efeito 3D Profissional) ===== */
 .btn-menu,
 .btn-restart {
   background: #00ff88;
+  color: #004d2c;
   border: none;
-  border-radius: 14px;
-  padding: 0.6rem 1.2rem;
-
-  font-family: inherit;
-  font-size: 1.2rem;
-  font-weight: bold;
+  border-radius: 16px;
+  padding: 0.5rem 1rem;
+  font-family: 'Bangers', cursive;
+  font-size: 1.1rem;
+  font-weight: normal;
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  /* Sombra 3D que dá profundidade */
+  box-shadow: 0 5px 0px #00a357;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-restart {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
+  background: #ffcc00;
+  box-shadow: 0 5px 0px #c79f00;
+  color: #5c4a00;
+}
+
+/* Efeito de clique: o botão "afunda" */
+.btn-menu:active,
+.btn-restart:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0px #00a357;
+}
+
+.btn-restart:active {
+  box-shadow: 0 2px 0px #c79f00;
 }
 
 /* ===== ÁREA PADRÃO DA PÁGINA ===== */
 .page {
   min-height: 100vh;
-  padding-top: 100px; /* espaço do header */
-
+  padding-top: 85px; /* Ajuste para não cobrir o conteúdo */
+  padding-bottom: 20px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
+}
+
+/* ===== CLASSES UTILITÁRIAS PARA OS JOGOS ===== */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 1.6rem;
+  }
+  
+  .btn-menu, .btn-restart {
+    padding: 0.4rem 0.8rem;
+    font-size: 1rem;
+  }
 }

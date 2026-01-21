@@ -1,93 +1,38 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/matematica.css'
 
+/* ===== DADOS DO JOGO ===== */
 const FRUTAS = [
-  /* FRUTAS */
-  '🍎', // maçã
-  '🍌', // banana
-  '🍇', // uva
-  '🍓', // morango
-  '🍉', // melancia
-  '🍍', // abacaxi
-  '🍊', // laranja
-  '🍐', // pera
-  '🍑', // pêssego
-  '🍒', // cereja
-  '🥝', // kiwi
-  '🍋', // limão
-
-  /* VERDURAS / LEGUMES */
-  '🥕', // cenoura
-  '🍅', // tomate
-  '🥔', // batata
-  '🌽', // milho
-  '🥒', // pepino
-  '🥬', // folhas verdes
-  '🧄', // alho
-  '🧅', // cebola
-  '🥦', // brócolis
-  '🍆', // berinjela
+  '🍎', '🍌', '🍇', '🍓', '🍉', '🍍', '🍊', '🍐', '🍑', '🍒', ' kiwi', '🍋',
+  '🥕', '🍅', '🥔', '🌽', '🥒', '🥬', ' garlic', ' onion', '🥦', '🍆'
 ]
 
 const CONTAS = [
-  /* ===== ADIÇÃO ===== */
   { a: 1, b: 2, op: '+' },
   { a: 2, b: 3, op: '+' },
   { a: 3, b: 4, op: '+' },
-  { a: 4, b: 2, op: '+' },
-  { a: 5, b: 3, op: '+' },
-  { a: 6, b: 4, op: '+' },
-  { a: 7, b: 2, op: '+' },
-  { a: 8, b: 1, op: '+' },
-  { a: 5, b: 5, op: '+' },
-
-  /* ===== SUBTRAÇÃO (SEM NEGATIVO) ===== */
   { a: 5, b: 2, op: '-' },
-  { a: 6, b: 3, op: '-' },
-  { a: 7, b: 4, op: '-' },
-  { a: 8, b: 2, op: '-' },
-  { a: 9, b: 5, op: '-' },
-  { a: 10, b: 4, op: '-' },
-  { a: 12, b: 6, op: '-' },
-
-  /* ===== MULTIPLICAÇÃO ===== */
+  { a: 8, b: 3, op: '-' },
   { a: 2, b: 2, op: '*' },
-  { a: 2, b: 3, op: '*' },
   { a: 3, b: 3, op: '*' },
-  { a: 3, b: 4, op: '*' },
-  { a: 4, b: 2, op: '*' },
-  { a: 5, b: 2, op: '*' },
-  { a: 6, b: 2, op: '*' },
-  { a: 4, b: 3, op: '*' },
-
-  /* ===== DIVISÃO (EXATA) ===== */
-  { a: 4, b: 2, op: '/' },
   { a: 6, b: 2, op: '/' },
-  { a: 6, b: 3, op: '/' },
-  { a: 8, b: 2, op: '/' },
-  { a: 9, b: 3, op: '/' },
-  { a: 10, b: 2, op: '/' },
-  { a: 12, b: 3, op: '/' },
-  { a: 12, b: 4, op: '/' },
+  { a: 9, b: 3, op: '/' }
 ]
 
-/* ===== GERAR OPÇÕES ===== */
 function gerarOpcoes(correta) {
   const set = new Set([correta])
-
   while (set.size < 4) {
     const n = correta + Math.floor(Math.random() * 7) - 3
-    if (n >= 0) set.add(n)
+    if (n >= 0 && n !== correta) set.add(n)
   }
-
   return Array.from(set).sort(() => Math.random() - 0.5)
 }
 
 export default function Matematica() {
   const navigate = useNavigate()
-
-  /* ===== ÁUDIOS ===== */
+  
+  /* ===== REFERÊNCIAS DE ÁUDIO ===== */
   const introRef = useRef(null)
   const bgRef = useRef(null)
   const okRef = useRef(null)
@@ -107,176 +52,165 @@ export default function Matematica() {
   const [finalizado, setFinalizado] = useState(false)
   const [bloqueado, setBloqueado] = useState(true)
 
-  /* ===== ÁUDIO SEGURO ===== */
-  function play(ref, volume = 1, onEnd) {
-    if (!soundOn) {
-      onEnd?.()
-      return
+  /* ===== FUNÇÕES DE SOM ===== */
+  const play = useCallback((ref, volume = 1, onEnd) => {
+    if (!soundOn || !ref.current) { 
+      onEnd?.(); 
+      return 
     }
-
     const audio = ref.current
-    if (!(audio instanceof HTMLAudioElement)) return
-
     audio.pause()
     audio.currentTime = 0
     audio.volume = volume
     audio.play().catch(() => {})
-    audio.onended = () => onEnd?.()
-  }
+    audio.onended = () => {
+      audio.onended = null
+      onEnd?.()
+    }
+  }, [soundOn])
 
-  /* ===== QUESTÃO ===== */
-  function carregarQuestao(i) {
+  const stopAllSounds = useCallback(() => {
+    [introRef, bgRef, okRef, errRef, fimRef, reinicioRef].forEach(ref => {
+      if (ref.current) {
+        ref.current.pause()
+        ref.current.currentTime = 0
+        ref.current.onended = null
+      }
+    })
+  }, [])
+
+  /* ===== LÓGICA DO JOGO ===== */
+  const carregarQuestao = useCallback((i) => {
+    if (!CONTAS[i]) return
     const { a, b, op } = CONTAS[i]
     const fruta = FRUTAS[i % FRUTAS.length]
+    let r = 0, texto = ''
 
-    let r = 0
-    let texto = ''
-
-    if (op === '+') {
-      r = a + b
-      texto = `${fruta.repeat(a)} + ${fruta.repeat(b)} = ?`
-    } else if (op === '-') {
-      r = a - b
-      texto = `${fruta.repeat(a)} − ${fruta.repeat(b)} = ?`
-    } else if (op === '*') {
-      r = a * b
-      texto = `${a} grupos de ${fruta.repeat(b)} = ?`
-    } else if (op === '/') {
-      r = a / b
-      texto = `${fruta.repeat(a)} ÷ ${b} = ?`
-    }
+    if (op === '+') { r = a + b; texto = `${fruta.repeat(a)} + ${fruta.repeat(b)} = ?` }
+    else if (op === '-') { r = a - b; texto = `${fruta.repeat(a)} − ${fruta.repeat(b)} = ?` }
+    else if (op === '*') { r = a * b; texto = `${a} grupos de ${fruta.repeat(b)} = ?` }
+    else if (op === '/') { r = a / b; texto = `${fruta.repeat(a)} ÷ ${b} = ?` }
 
     setResposta(r)
     setEquacao(texto)
     setOpcoes(gerarOpcoes(r))
     setSlot('?')
     setMensagem('')
-  }
+  }, [])
 
-  /* ===== VERIFICAR ===== */
   function verificar(valor) {
     if (bloqueado || finalizado) return
     setBloqueado(true)
+    setSlot(valor)
 
     if (valor === resposta) {
-      setSlot(valor)
       play(okRef)
+      setMensagem('Muito bem! 🌟')
+      setTimeout(() => {
+        const prox = indice + 1
+        if (prox < CONTAS.length) {
+          setIndice(prox)
+          carregarQuestao(prox)
+          setBloqueado(false)
+        } else {
+          setFinalizado(true)
+          setEquacao('Fim do jogo 🎉')
+          play(fimRef)
+        }
+      }, 1200)
     } else {
-      setMensagem('Vamos tentar outra 🙂')
+      setMensagem('Tente de novo 🙂')
       play(errRef)
+      setTimeout(() => {
+        setSlot('?')
+        setBloqueado(false)
+      }, 1000)
+    }
+  }
+
+  /* ===== REINÍCIO ===== */
+  const reiniciarJogo = () => {
+    stopAllSounds()
+    setBloqueado(true)
+    setFinalizado(false)
+    setIndice(0)
+    setSlot('?')
+    setMensagem('Reiniciando...')
+
+    // Toca música de fundo suave
+    if (bgRef.current) {
+      bgRef.current.volume = 0.05
+      bgRef.current.play().catch(() => {})
     }
 
-    setTimeout(() => {
-      const prox = indice + 1
-      if (prox < CONTAS.length) {
-        setIndice(prox)
-        carregarQuestao(prox)
-        setBloqueado(false)
-      } else {
-        finalizar()
-      }
-    }, 700)
-  }
-
-  function finalizar() {
-    setFinalizado(true)
-    setEquacao('Fim do jogo 🎉')
-    setOpcoes([])
-    setMensagem('Parabéns! Você concluiu!')
-    play(fimRef)
-  }
-
-  function reiniciar() {
-    if (bloqueado) return
-    setBloqueado(true)
-
     play(reinicioRef, 1, () => {
-      setIndice(0)
-      setFinalizado(false)
+      if (bgRef.current) bgRef.current.volume = 0.15
       carregarQuestao(0)
       setBloqueado(false)
     })
   }
 
-  /* ===== INÍCIO COM INTRO DA AILA ===== */
+  /* ===== EFEITO INICIAL ===== */
   useEffect(() => {
-    setBloqueado(true)
-
     if (soundOn && bgRef.current) {
-      bgRef.current.volume = 0.15
+      bgRef.current.volume = 0.1
       bgRef.current.play().catch(() => {})
     }
 
-    if (soundOn && introRef.current) {
-      bgRef.current.volume = 0.05
-      play(introRef, 1, () => {
-        bgRef.current.volume = 0.15
-        carregarQuestao(0)
-        setBloqueado(false)
-      })
-    } else {
+    play(introRef, 1, () => {
       carregarQuestao(0)
       setBloqueado(false)
-    }
+    })
 
-    return () => {
-      ;[introRef, bgRef, okRef, errRef, fimRef, reinicioRef].forEach((r) => {
-        if (r.current instanceof HTMLAudioElement) {
-          r.current.pause()
-          r.current.currentTime = 0
-          r.current.onended = null
-        }
-      })
-    }
+    return () => stopAllSounds()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [carregarQuestao, play, soundOn])
+
+  const progresso = ((indice + 1) / CONTAS.length) * 100
 
   return (
-    <>
+    <div className="matematica-page">
       <header className="header">
-        <button className="btn-menu" onClick={() => !bloqueado && navigate('/')}>
-          Menu
-        </button>
-
-        <h1 className="header-title">MATEMÁTICA</h1>
-
-        <button className="btn-restart" onClick={reiniciar}>
-          ♻
-        </button>
+        <button className="btn-menu" onClick={() => navigate('/menu')}>Menu</button>
+        <h1 className="header-title">NÚMEROS</h1>
+        <button className="btn-restart" onClick={reiniciarJogo}>♻</button>
       </header>
+
+      <div className="progress-container">
+        <div className="progress-bar" style={{ width: `${progresso}%` }}></div>
+      </div>
 
       <main className="page">
         <div className="matematica-container">
-          <div className="equation">{equacao}</div>
+          <div className="equation-card">{equacao}</div>
 
-          <div className={`slot ${slot !== '?' ? 'ok' : ''}`}>
+          <div className={`slot-box ${slot === '?' ? 'waiting' : slot === resposta ? 'correct' : 'wrong'}`}>
             {slot}
           </div>
 
-          <div className="answers">
+          <div className="answers-grid">
             {opcoes.map((n) => (
-              <div
+              <button
                 key={n}
-                className="item"
-                draggable={!bloqueado}
-                onDragEnd={() => verificar(n)}
+                className="answer-item"
+                disabled={bloqueado || finalizado}
+                onClick={() => verificar(n)}
               >
                 {n}
-              </div>
+              </button>
             ))}
           </div>
 
-          <div className="message">{mensagem}</div>
+          {mensagem && <div className="feedback-message">{mensagem}</div>}
         </div>
       </main>
 
-      {/* ===== ÁUDIOS ===== */}
       <audio ref={introRef} src="/audio/aila-intro-matematica.mp3" />
       <audio ref={bgRef} src="/audio/musica-terapeutica.mp3" loop />
       <audio ref={okRef} src="/audio/aila-muito-bem.mp3" />
       <audio ref={errRef} src="/audio/aila-tente-novamente.mp3" />
       <audio ref={fimRef} src="/audio/aila-finalizacao.mp3" />
       <audio ref={reinicioRef} src="/audio/aila-reinicio.mp3" />
-    </>
+    </div>
   )
 }

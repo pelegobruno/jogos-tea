@@ -4,7 +4,6 @@ import '@/styles/menu.css'
 
 export default function Menu() {
   const navigate = useNavigate()
-
   const musicRef = useRef(null)
   const clickRef = useRef(null)
 
@@ -12,110 +11,89 @@ export default function Menu() {
     localStorage.getItem('soundOn') !== 'false'
   )
 
-  /* ===== AUTOPLAY CONTROLADO ===== */
+  /* ===== CONTROLE DE ÁUDIO ===== */
   useEffect(() => {
     const music = musicRef.current
     if (!music) return
 
-    music.volume = 0.5
+    music.volume = 0.3 // Volume mais suave para não assustar
 
-    if (!soundOn) {
+    if (soundOn) {
+      const playPromise = music.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Autoplay bloqueado pelo browser até interação
+          const enableAudio = () => {
+            music.play()
+            document.removeEventListener('click', enableAudio)
+          }
+          document.addEventListener('click', enableAudio)
+        })
+      }
+    } else {
       music.pause()
-      return
     }
 
-    music.play().catch(() => {
-      const liberar = () => {
-        music.play().catch(() => {})
-      }
-      document.addEventListener('touchstart', liberar, { once: true })
-    })
+    return () => music.pause() // Para a música ao sair do menu
   }, [soundOn])
 
-  /* ===== ABRIR JOGO ===== */
   const openGame = (rota) => {
     if (soundOn && clickRef.current) {
       clickRef.current.currentTime = 0
-      clickRef.current.play()
+      clickRef.current.play().catch(() => {})
     }
-
-    setTimeout(() => {
-      navigate(rota)
-    }, 300)
+    // Adiciona uma pequena classe de animação ou feedback visual antes de navegar
+    setTimeout(() => navigate(rota), 200)
   }
 
-  /* ===== TOGGLE SOM ===== */
   const toggleSound = () => {
-    const novo = !soundOn
-    setSoundOn(novo)
-    localStorage.setItem('soundOn', novo)
+    const novoStatus = !soundOn
+    setSoundOn(novoStatus)
+    localStorage.setItem('soundOn', novoStatus)
   }
 
-  /* ===== JOGOS DO MENU ===== */
   const jogos = [
-    {
-      rota: '/objetos',
-      icon: '🎯',
-      titulo: 'OBJETOS',
-      desc: 'Pareamento • Atenção Visual',
-    },
-    {
-      rota: '/matematica',
-      icon: '🔢',
-      titulo: 'NÚMEROS',
-      desc: 'Sequência • Quantidade',
-    },
-    {
-      rota: '/imitacao',
-      icon: '🖐️',
-      titulo: 'IMITAÇÃO',
-      desc: 'Movimento • Atenção',
-    },
-    {
-      rota: '/emocoes',
-      icon: '😊',
-      titulo: 'EMOÇÕES',
-      desc: 'Reconhecer • Expressar',
-    },
+    { rota: '/objetos', icon: '🎯', titulo: 'OBJETOS', desc: 'Pareamento e Atenção', cor: '#FFEBEE' },
+    { rota: '/matematica', icon: '🔢', titulo: 'MATEMÁTICA', desc: 'Contar e Somar', cor: '#E3F2FD' },
+    { rota: '/imitacao', icon: '🖐️', titulo: 'IMITAÇÃO', desc: 'Siga a Sequência', cor: '#E8F5E9' },
+    { rota: '/emocoes', icon: '😊', titulo: 'EMOÇÕES', desc: 'Expressões e Afeto', cor: '#FFF3E0' },
   ]
 
   return (
-    <>
-      {/* ===== HEADER GLOBAL ===== */}
-      <header className="header">
-        <span />
-
-        <h1 className="header-title">🧠 Jogos Terapêuticos TEA</h1>
-
-        <button className="btn-menu" onClick={toggleSound}>
-          {soundOn ? '🔊 Som: ON' : '🔇 Som: OFF'}
+    <div className="menu-wrapper">
+      <header className="header-menu">
+        <h1 className="header-title">🧠 Jogos TEA</h1>
+        <button className={`btn-sound ${!soundOn ? 'off' : ''}`} onClick={toggleSound}>
+          {soundOn ? '🔊' : '                    🔇'}
         </button>
       </header>
 
-      {/* ===== CONTEÚDO ===== */}
-      <main className="page menu-page">
-        <div className="menu-text">
-          <span>MENU DE ATIVIDADES</span>
+      <main className="menu-container">
+        <div className="menu-intro">
+          <h2>Olá! Vamos brincar?</h2>
+          <p>Escolha uma atividade abaixo</p>
         </div>
 
         <div className="menu-grid">
           {jogos.map((jogo) => (
-            <div
+            <button
               key={jogo.titulo}
-              className="card"
+              className="menu-card"
               onClick={() => openGame(jogo.rota)}
+              style={{ '--card-color': jogo.cor }}
             >
-              <div className="icon">{jogo.icon}</div>
-              <h3>{jogo.titulo}</h3>
-              <span>{jogo.desc}</span>
-            </div>
+              <div className="card-icon">{jogo.icon}</div>
+              <div className="card-info">
+                <h3>{jogo.titulo}</h3>
+                <span>{jogo.desc}</span>
+              </div>
+            </button>
           ))}
         </div>
       </main>
 
-      {/* ===== ÁUDIOS ===== */}
       <audio ref={musicRef} src="/audio/menu-music.mp3" loop />
       <audio ref={clickRef} src="/audio/click-soft.mp3" />
-    </>
+    </div>
   )
 }
