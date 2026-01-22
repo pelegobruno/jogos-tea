@@ -2,24 +2,23 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/emocoes.css'
 
-/* ===== EMOÇÕES ===== */
+/* ===== EMOÇÕES (CAMINHOS CORRIGIDOS) ===== */
 const EMOCOES = [
-  { nome: 'ALEGRIA', src: '/jogos-tea/img/Alegria.png', cor: '#FFD54F' },
-  { nome: 'TRISTEZA', src: '/jogos-tea/img/Tristeza.png', cor: '#90CAF9' },
-  { nome: 'RAIVA', src: '/jogos-tea/img/Raiva.png', cor: '#EF5350' },
-  { nome: 'MEDO', src: '/jogos-tea/img/Medo.png', cor: '#B39DDB' },
-  { nome: 'NOJINHO', src: '/jogos-tea/img/Nojinho.png', cor: '#A5D6A7' },
-  { nome: 'ANSIEDADE', src: '/jogos-tea/img/Ansiedade.png', cor: '#FFCC80' },
-  { nome: 'VERGONHA', src: '/jogos-tea/img/Vergonha.png', cor: '#CE93D8' },
-  { nome: 'NOSTALGIA', src: '/jogos-tea/img/Nostalgia.png', cor: '#B0BEC5' },
-  { nome: 'INVEJA', src: '/jogos-tea/img/Inveja.png', cor: '#81C784' },
+  { nome: 'ALEGRIA', src: './img/Alegria.png', cor: '#FFD54F' },
+  { nome: 'TRISTEZA', src: './img/Tristeza.png', cor: '#90CAF9' },
+  { nome: 'RAIVA', src: './img/Raiva.png', cor: '#EF5350' },
+  { nome: 'MEDO', src: './img/Medo.png', cor: '#B39DDB' },
+  { nome: 'NOJINHO', src: './img/Nojinho.png', cor: '#A5D6A7' },
+  { nome: 'ANSIEDADE', src: './img/Ansiedade.png', cor: '#FFCC80' },
+  { nome: 'VERGONHA', src: './img/Vergonha.png', cor: '#CE93D8' },
+  { nome: 'NOSTALGIA', src: './img/Nostalgia.png', cor: '#B0BEC5' },
+  { nome: 'INVEJA', src: './img/Inveja.png', cor: '#81C784' },
 ]
 
 function gerarOpcoes(certa) {
   const set = new Set([certa])
   while (set.size < 6) {
-    const aleatoria =
-      EMOCOES[Math.floor(Math.random() * EMOCOES.length)]?.nome
+    const aleatoria = EMOCOES[Math.floor(Math.random() * EMOCOES.length)]?.nome
     if (aleatoria) set.add(aleatoria)
   }
   return Array.from(set).sort(() => Math.random() - 0.5)
@@ -88,8 +87,7 @@ export default function Emocoes() {
         !sorteada ||
         (sorteada.nome === prev?.nome && !forcarNova)
       ) {
-        sorteada =
-          EMOCOES[Math.floor(Math.random() * EMOCOES.length)]
+        sorteada = EMOCOES[Math.floor(Math.random() * EMOCOES.length)]
       }
       setOpcoes(gerarOpcoes(sorteada.nome))
       return sorteada
@@ -104,12 +102,13 @@ export default function Emocoes() {
         if (p <= 1) {
           setFinalizado(true)
           setBloqueado(true)
+          playAudio(fimRef)
           return 0
         }
         return p - 1
       })
     }, 1000)
-  }, [])
+  }, [playAudio])
 
   function verificar(nome) {
     if (bloqueado || finalizado) return
@@ -150,30 +149,30 @@ export default function Emocoes() {
 
   /* ===== CICLO DE VIDA ===== */
   useEffect(() => {
-    playAudio(introRef, 1, () => {
-      if (musicRef.current) {
-        musicRef.current.volume = 0.2
-        musicRef.current.play().catch(() => {})
-      }
-      setBloqueado(false)
-      novaRodada(true)
-      iniciarTimer()
-    })
+    const tStart = setTimeout(() => {
+      playAudio(introRef, 1, () => {
+        if (musicRef.current) {
+          musicRef.current.volume = 0.2
+          musicRef.current.play().catch(() => {})
+        }
+        setBloqueado(false)
+        novaRodada(true)
+        iniciarTimer()
+      })
+    }, 500)
 
-    return () => stopAllSounds()
+    return () => {
+      clearTimeout(tStart)
+      stopAllSounds()
+    }
   }, [iniciarTimer, novaRodada, playAudio, stopAllSounds])
 
-  /* ===== JSX ===== */
   return (
     <div className="emocoes-page-wrapper">
       <header className="header">
-        <button className="btn-menu" onClick={() => navigate('/menu')}>
-          Menu
-        </button>
+        <button className="btn-menu" onClick={() => navigate('/menu')}>Menu</button>
         <h1 className="header-title">EMOÇÕES</h1>
-        <button className="btn-restart" onClick={reiniciarJogo}>
-          ♻
-        </button>
+        <button className="btn-restart" onClick={reiniciarJogo}>♻</button>
       </header>
 
       <main className="page">
@@ -183,26 +182,15 @@ export default function Emocoes() {
             <span>⭐ {pontos}</span>
           </div>
 
-          <div
-            className="emotion-view"
-            style={{ backgroundColor: correta?.cor || '#fff' }}
-          >
-            {correta && (
-              <img src={correta.src} alt={correta.nome} />
-            )}
+          <div className="emotion-view" style={{ backgroundColor: correta?.cor || '#fff' }}>
+            {correta && <img src={correta.src} alt={correta.nome} />}
           </div>
 
           <div className="grid">
             {opcoes.map(nome => (
               <button
                 key={nome}
-                className={`option ${
-                  escolhaFeita === nome
-                    ? nome === correta?.nome
-                      ? 'correct'
-                      : 'wrong'
-                    : ''
-                }`}
+                className={`option ${escolhaFeita === nome ? (nome === correta?.nome ? 'correct' : 'wrong') : ''}`}
                 disabled={bloqueado}
                 onClick={() => verificar(nome)}
               >
@@ -215,32 +203,13 @@ export default function Emocoes() {
         </div>
       </main>
 
-      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO PARA GITHUB) ===== */}
-      <audio
-        ref={introRef}
-        src="/jogos-tea/audio/aila-intro-emocoes.mp3"
-      />
-      <audio
-        ref={musicRef}
-        src="/jogos-tea/audio/musica-terapeutica.mp3"
-        loop
-      />
-      <audio
-        ref={okRef}
-        src="/jogos-tea/audio/aila-muito-bem.mp3"
-      />
-      <audio
-        ref={errRef}
-        src="/jogos-tea/audio/aila-tente-novamente.mp3"
-      />
-      <audio
-        ref={fimRef}
-        src="/jogos-tea/audio/aila-finalizacao.mp3"
-      />
-      <audio
-        ref={reinicioRef}
-        src="/jogos-tea/audio/aila-reinicio.mp3"
-      />
+      {/* ===== ÁUDIOS (CAMINHOS RELATIVOS CORRIGIDOS) ===== */}
+      <audio ref={introRef} src="./audio/aila-intro-emocoes.mp3" />
+      <audio ref={musicRef} src="./audio/musica-terapeutica.mp3" loop />
+      <audio ref={okRef} src="./audio/aila-muito-bem.mp3" />
+      <audio ref={errRef} src="./audio/aila-tente-novamente.mp3" />
+      <audio ref={fimRef} src="./audio/aila-finalizacao.mp3" />
+      <audio ref={reinicioRef} src="./audio/aila-reinicio.mp3" />
     </div>
   )
 }

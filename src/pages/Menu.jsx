@@ -135,16 +135,16 @@ export default function Menu() {
         </div>
       </main>
 
-      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO GITHUB PAGES) ===== */}
+      {/* ===== ÁUDIOS (CAMINHOS RELATIVOS CORRIGIDOS) ===== */}
       <audio
         ref={musicRef}
-        src="/jogos-tea/audio/menu-music.mp3"
+        src="./audio/menu-music.mp3"
         loop
         preload="auto"
       />
       <audio
         ref={clickRef}
-        src="/jogos-tea/audio/click-soft.mp3"
+        src="./audio/click-soft.mp3"
         preload="auto"
       />
     </div>

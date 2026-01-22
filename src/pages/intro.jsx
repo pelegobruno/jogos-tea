@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/intro.css'
 
@@ -17,7 +17,7 @@ export default function Intro() {
   const navigate = useNavigate()
   const [started, setStarted] = useState(false)
 
-  /* ===== REFS ===== */
+  /* ===== REFERÊNCIAS ===== */
   const pressRef = useRef(null)
   const startBoxRef = useRef(null)
   const jogosRef = useRef(null)
@@ -41,163 +41,24 @@ export default function Intro() {
   }
 
   const play = (ref) => {
-    if (!ref?.current) return
-    ref.current.currentTime = 0
-    ref.current.play().catch(() => {})
-  }
-
-  /* ================= START ================= */
-  const startIntro = () => {
-    if (started) return
-    setStarted(true)
-
-    if (startBoxRef.current)
-      startBoxRef.current.classList.add('start-flash-fast')
-
-    play(audio.uka)
-
-    setTimeout(() => {
-      if (pressRef.current) pressRef.current.style.display = 'none'
-      startScene()
-    }, 1500)
-  }
-
-  /* ================= CENA ================= */
-  const startScene = () => {
-    play(audio.music)
-    dropTitleSequence()
-    rotatePhrases()
-    fillFlask()
-    startBubbles()
-    startStars()
-  }
-
-  /* ===== JOGOS TERAPÊUTICOS ===== */
-  const dropTitleSequence = () => {
-    if (!jogosRef.current || !terapRef.current) return
-
-    jogosRef.current.classList.add('drop')
-    play(audio.metal)
-
-    setTimeout(() => {
-      if (!terapRef.current) return
-      terapRef.current.classList.add('drop')
-      play(audio.metal)
-    }, 300)
-
-    setTimeout(() => piqueNTimes(jogosRef.current, 3), 1000)
-    setTimeout(() => piqueNTimes(terapRef.current, 3), 1600)
-
-    setTimeout(() => {
-      if (!jogosRef.current || !terapRef.current) return
-      jogosRef.current.classList.add('title-idle')
-      terapRef.current.classList.add('title-idle')
-    }, 3200)
-  }
-
-  const piqueNTimes = (el, times) => {
+    const el = ref?.current
     if (!el) return
-    let count = 0
-    const id = setInterval(() => {
-      if (!el) return
-      el.classList.remove('pique')
-      void el.offsetWidth
-      el.classList.add('pique')
-      play(audio.metal)
-      count++
-      if (count >= times) clearInterval(id)
-    }, 450)
-
-    intervalsRef.current.push(id)
+    el.pause()
+    el.currentTime = 0
+    el.play().catch(() => {})
   }
 
-  /* ===== FRASES ===== */
-  const rotatePhrases = () => {
-    let i = 0
-    const id = setInterval(() => {
-      if (!subtitleRef.current) return
-      i = (i + 1) % phrases.length
-      subtitleRef.current.style.opacity = 0
-      setTimeout(() => {
-        if (!subtitleRef.current) return
-        subtitleRef.current.textContent = phrases[i]
-        subtitleRef.current.style.opacity = 1
-      }, 400)
-    }, 4000)
-
-    intervalsRef.current.push(id)
-  }
-
-  /* ===== FRASCO ===== */
-  const fillFlask = () => {
-    let start = null
-
-    const loop = (t) => {
-      if (!liquidRef.current) return
-      if (!start) start = t
-      const elapsed = (t - start) / 1000
-
-      liquidRef.current.style.height =
-        Math.min((elapsed / TOTAL_TIME) * 100, 100) + '%'
-
-      if (elapsed < TOTAL_TIME) {
-        const id = requestAnimationFrame(loop)
-        rafsRef.current.push(id)
-      } else {
-        bigBang()
-      }
-    }
-
-    const id = requestAnimationFrame(loop)
-    rafsRef.current.push(id)
-  }
-
-  /* ================= BIG BANG ================= */
-  const bigBang = () => {
-    if (audio.music.current) audio.music.current.pause()
-    play(audio.boom)
-
-    if (flashRef.current)
-      flashRef.current.classList.add('boom-flash')
-
-    if (flaskRef.current)
-      flaskRef.current.classList.add('flask-explode')
-
-    ;[jogosRef.current, terapRef.current, subtitleRef.current].forEach((el) => {
-      if (!el) return
-      el.classList.remove('title-idle', 'drop')
-      el.style.setProperty('--fx', Math.random() * 1000 - 500)
-      el.style.setProperty('--fy', Math.random() * -1000 - 200)
-      el.style.setProperty('--r', Math.random() * 1080 - 540)
-      el.classList.add('fly-away')
-    })
-
-    setTimeout(() => navigate('/menu'), 2500)
-  }
-
-  /* ================= AUX ================= */
-  const startBubbles = () => {
-    const id = setInterval(() => {
-      if (!bubbleLayerRef.current) return
-      const b = document.createElement('div')
-      b.className = 'bubble'
-      b.style.left = Math.random() * 100 + '%'
-      bubbleLayerRef.current.appendChild(b)
-      setTimeout(() => b.remove(), 3000)
-    }, 500)
-
-    intervalsRef.current.push(id)
-  }
-
-  const startStars = () => {
+  /* ================= ESTRELAS (CANVAS) ================= */
+  const initStars = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
 
     const resize = () => {
-      if (!canvasRef.current) return
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth
+        canvasRef.current.height = window.innerHeight
+      }
     }
 
     resize()
@@ -209,39 +70,162 @@ export default function Intro() {
       s: Math.random() * 0.6 + 0.2,
     }))
 
-    const loop = () => {
-      if (!canvasRef.current) return
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+    const animate = () => {
+      if (!canvasRef.current || !ctx) return
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
       ctx.fillStyle = 'white'
       stars.forEach((s) => {
         s.y += s.s
-        if (s.y > canvas.height) s.y = 0
+        if (s.y > canvasRef.current.height) s.y = 0
         ctx.fillRect(s.x, s.y, 2, 2)
       })
-      const id = requestAnimationFrame(loop)
+      const id = requestAnimationFrame(animate)
       rafsRef.current.push(id)
     }
 
-    loop()
-  }
-
-  /* ===== LIMPEZA ===== */
-  useEffect(() => {
-    return () => {
-      intervalsRef.current.forEach(clearInterval)
-      rafsRef.current.forEach(cancelAnimationFrame)
-      intervalsRef.current = []
-      rafsRef.current = []
-    }
+    animate()
+    return () => window.removeEventListener('resize', resize)
   }, [])
 
-  /* ================= JSX ================= */
+  /* ================= FINALIZAÇÃO (BIG BANG) ================= */
+  const bigBang = useCallback(() => {
+    if (audio.music.current) audio.music.current.pause()
+    play(audio.boom)
+
+    if (flashRef.current) flashRef.current.classList.add('boom-flash')
+    if (flaskRef.current) flaskRef.current.classList.add('flask-explode')
+
+    const elements = [jogosRef.current, terapRef.current, subtitleRef.current]
+    elements.forEach((el) => {
+      if (!el) return
+      el.classList.remove('title-idle', 'drop')
+      el.style.setProperty('--fx', (Math.random() * 1000 - 500).toString())
+      el.style.setProperty('--fy', (Math.random() * -1000 - 200).toString())
+      el.style.setProperty('--r', (Math.random() * 1080 - 540).toString())
+      el.classList.add('fly-away')
+    })
+
+    // Navegação segura após animação
+    const tEnd = setTimeout(() => {
+        navigate('/menu')
+    }, 2500)
+    intervalsRef.current.push(tEnd)
+  }, [navigate])
+
+  /* ================= ANIMAÇÕES DE CENA ================= */
+  const piqueNTimes = (el, times) => {
+    if (!el) return
+    let count = 0
+    const id = setInterval(() => {
+      if (!el) {
+        clearInterval(id)
+        return
+      }
+      el.classList.remove('pique')
+      void el.offsetWidth 
+      el.classList.add('pique')
+      play(audio.metal)
+      count++
+      if (count >= times) clearInterval(id)
+    }, 450)
+    intervalsRef.current.push(id)
+  }
+
+  const startScene = () => {
+    play(audio.music)
+
+    if (jogosRef.current) {
+        jogosRef.current.classList.add('drop')
+        play(audio.metal)
+    }
+
+    const t1 = setTimeout(() => {
+      if (terapRef.current) {
+        terapRef.current.classList.add('drop')
+        play(audio.metal)
+      }
+    }, 300)
+
+    const t2 = setTimeout(() => piqueNTimes(jogosRef.current, 3), 1000)
+    const t3 = setTimeout(() => piqueNTimes(terapRef.current, 3), 1600)
+
+    const t4 = setTimeout(() => {
+      if (jogosRef.current) jogosRef.current.classList.add('title-idle')
+      if (terapRef.current) terapRef.current.classList.add('title-idle')
+    }, 3200)
+
+    let i = 0
+    const idFrase = setInterval(() => {
+      if (!subtitleRef.current) return
+      i = (i + 1) % phrases.length
+      subtitleRef.current.style.opacity = '0'
+      setTimeout(() => {
+        if (subtitleRef.current) {
+          subtitleRef.current.textContent = phrases[i]
+          subtitleRef.current.style.opacity = '1'
+        }
+      }, 400)
+    }, 4000)
+
+    let startTime = null
+    const loopFill = (t) => {
+      if (!liquidRef.current) return
+      if (!startTime) startTime = t
+      const elapsed = (t - startTime) / 1000
+      const progress = Math.min((elapsed / TOTAL_TIME) * 100, 100)
+      liquidRef.current.style.height = `${progress}%`
+
+      if (elapsed < TOTAL_TIME) {
+        rafsRef.current.push(requestAnimationFrame(loopFill))
+      } else {
+        bigBang()
+      }
+    }
+    rafsRef.current.push(requestAnimationFrame(loopFill))
+
+    const idBubbles = setInterval(() => {
+      if (!bubbleLayerRef.current) return
+      const b = document.createElement('div')
+      b.className = 'bubble'
+      b.style.left = Math.random() * 100 + '%'
+      bubbleLayerRef.current.appendChild(b)
+      setTimeout(() => b.remove(), 3000)
+    }, 500)
+
+    intervalsRef.current.push(t1, t2, t3, t4, idFrase, idBubbles)
+  }
+
+  const startIntro = () => {
+    if (started) return
+    setStarted(true)
+    if (startBoxRef.current) startBoxRef.current.classList.add('start-flash-fast')
+    play(audio.uka)
+    setTimeout(() => {
+      if (pressRef.current) pressRef.current.style.display = 'none'
+      startScene()
+    }, 1500)
+  }
+
+  useEffect(() => {
+    const cleanupStars = initStars()
+    return () => {
+      if (cleanupStars) cleanupStars()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      intervalsRef.current.forEach(id => {
+          clearInterval(id)
+          clearTimeout(id)
+      })
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      rafsRef.current.forEach(cancelAnimationFrame)
+    }
+  }, [initStars])
+
   return (
     <div className="intro-page">
       <div id="explosion-flash" ref={flashRef}></div>
 
       <div id="press-start" ref={pressRef} onClick={startIntro}>
-        <div className="start-box" ref={startBoxRef}>
+        <div className={`start-box ${started ? 'start-flash-fast' : ''}`} ref={startBoxRef}>
           ▶ PRESS START ◀
         </div>
       </div>
@@ -253,11 +237,7 @@ export default function Intro() {
           <span ref={jogosRef}>JOGOS</span>
           <span ref={terapRef}>TERAPÊUTICOS</span>
         </h1>
-
-        <div id="subtitle" ref={subtitleRef}>
-          AGUARDANDO INICIALIZAÇÃO...
-        </div>
-
+        <div id="subtitle" ref={subtitleRef}>AGUARDANDO INICIALIZAÇÃO...</div>
         <div className="flask-wrapper">
           <div className="flask" ref={flaskRef}>
             <div className="liquid" ref={liquidRef}></div>
@@ -266,27 +246,10 @@ export default function Intro() {
         </div>
       </main>
 
-      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO GITHUB PAGES) ===== */}
-      <audio
-        ref={audio.uka}
-        src="/jogos-tea/audio/intro/aku_aku.mp3"
-        preload="auto"
-      />
-      <audio
-        ref={audio.music}
-        src="/jogos-tea/audio/intro/1-01. N. Sanity Beach.mp3"
-        preload="auto"
-      />
-      <audio
-        ref={audio.metal}
-        src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3"
-        preload="auto"
-      />
-      <audio
-        ref={audio.boom}
-        src="/jogos-tea/audio/intro/bomba.mp3"
-        preload="auto"
-      />
+      <audio ref={audio.uka} src="/audio/intro/aku_aku.mp3" preload="auto" />
+      <audio ref={audio.music} src="/audio/intro/1-01. N. Sanity Beach.mp3" preload="auto" />
+      <audio ref={audio.metal} src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto" />
+      <audio ref={audio.boom} src="/audio/intro/bomba.mp3" preload="auto" />
     </div>
   )
 }

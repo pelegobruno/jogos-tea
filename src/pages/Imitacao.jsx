@@ -194,26 +194,26 @@ export default function Imitacao() {
         </div>
       </main>
 
-      {/* ===== ÁUDIOS (CAMINHO ABSOLUTO PARA GITHUB PAGES) ===== */}
+      {/* ===== ÁUDIOS (CAMINHO RELATIVO CORRIGIDO) ===== */}
       <audio
         ref={introRef}
-        src="/jogos-tea/audio/sequencia/aila-intro.mp3"
+        src="./audio/sequencia/aila-intro.mp3"
       />
       <audio
         ref={okRef}
-        src="/jogos-tea/audio/sequencia/aila-muito-bem.mp3"
+        src="./audio/sequencia/aila-muito-bem.mp3"
       />
       <audio
         ref={errRef}
-        src="/jogos-tea/audio/sequencia/aila-tente-novamente.mp3"
+        src="./audio/sequencia/aila-tente-novamente.mp3"
       />
       <audio
         ref={restartRef}
-        src="/jogos-tea/audio/aila-reinicio.mp3"
+        src="./audio/aila-reinicio.mp3"
       />
       <audio
         ref={musicRef}
-        src="/jogos-tea/audio/musica-terapeutica.mp3"
+        src="./audio/musica-terapeutica.mp3"
         loop
       />
     </div>
