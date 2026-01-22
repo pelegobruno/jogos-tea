@@ -145,8 +145,14 @@ export default function Intro() {
   const bigBang = () => {
     if (audio.music.current) audio.music.current.pause()
     play(audio.boom)
+
+    // AQUI: Salva no navegador que a intro terminou
+    // Isso impede que o F5 traga o usuário para cá de novo
+    localStorage.setItem('introFinished', 'true')
+
     if (flashRef.current) flashRef.current.classList.add('boom-flash')
     if (flaskRef.current) flaskRef.current.classList.add('flask-explode')
+    
     ;[jogosRef.current, terapRef.current, subtitleRef.current].forEach((el) => {
       if (!el) return
       el.classList.remove('title-idle', 'drop')
@@ -155,6 +161,7 @@ export default function Intro() {
       el.style.setProperty('--r', (Math.random() * 1080 - 540).toString())
       el.classList.add('fly-away')
     })
+    
     const t = setTimeout(() => navigate('/menu'), 2500)
     intervalsRef.current.push(t)
   }
@@ -238,9 +245,6 @@ export default function Intro() {
         </div>
       </main>
 
-      {/* IMPORTANTE: Como você definiu base: '/jogos-tea/' no vite.config.js, 
-          não comece o src com barra (/). Use apenas 'audio/...' 
-      */}
       <audio ref={audio.uka} src="audio/intro/aku_aku.mp3" preload="auto" />
       <audio ref={audio.music} src="audio/intro/1-01. N. Sanity Beach.mp3" preload="auto" />
       <audio ref={audio.metal} src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto" />
