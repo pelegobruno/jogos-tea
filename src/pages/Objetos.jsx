@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/objetos.css'
 
-/* ===== ITENS (Caminhos relativos para GitHub Pages) ===== */
 const ITENS_ORIGINAIS = [
   { icon: '🏠', nome: 'Casa', audio: 'audio/comandos/aila-arraste-casa.mp3' },
   { icon: '⚽', nome: 'Bola', audio: 'audio/comandos/aila-arraste-bola.mp3' },
@@ -28,8 +27,6 @@ const ITENS_ORIGINAIS = [
 
 export default function Objetos() {
   const navigate = useNavigate()
-
-  /* ===== REFS ===== */
   const vozRef = useRef(null)
   const musicRef = useRef(null)
   const errRef = useRef(null)
@@ -37,47 +34,37 @@ export default function Objetos() {
   const reinicioRef = useRef(null)
 
   const soundOn = localStorage.getItem('soundOn') !== 'false'
-
-  /* ===== ESTADOS ===== */
   const [itensDisponiveis, setItensDisponiveis] = useState([])
   const [objetivoAtual, setObjetivoAtual] = useState(null)
   const [mensagem, setMensagem] = useState('')
-  const [alvoIcon, setAlvoIcon] = useState('Clique no Objeto')
+  const [alvoIcon, setAlvoIcon] = useState('')
   const [finalizado, setFinalizado] = useState(false)
   const [bloqueado, setBloqueado] = useState(true)
 
-  /* ===== ÁUDIO SEGURO ===== */
   const safePlay = useCallback((ref, src = null, onEnd = null) => {
-    // Parar áudios ativos
     [vozRef, errRef, fimRef, reinicioRef].forEach(r => {
       if (r.current) {
         r.current.pause()
         r.current.currentTime = 0
       }
     })
-
     const audioEl = ref?.current
     if (!soundOn || !audioEl) {
       setBloqueado(false)
       onEnd?.()
       return
     }
-
     if (src) audioEl.src = src
-
-    audioEl.play()
-      .then(() => {
-        setBloqueado(true)
-        audioEl.onended = () => {
-          audioEl.onended = null
-          setBloqueado(false)
-          onEnd?.()
-        }
-      })
-      .catch(() => {
+    audioEl.play().then(() => {
+      setBloqueado(true)
+      audioEl.onended = () => {
         setBloqueado(false)
         onEnd?.()
-      })
+      }
+    }).catch(() => {
+      setBloqueado(false)
+      onEnd?.()
+    })
   }, [soundOn])
 
   const sortearProximo = useCallback((listaAtual) => {
@@ -87,22 +74,16 @@ export default function Objetos() {
       safePlay(fimRef)
       return
     }
-
     const sorteado = listaAtual[Math.floor(Math.random() * listaAtual.length)]
     setObjetivoAtual(sorteado)
-    
-    // Timeout para evitar colisão de áudios
-    setTimeout(() => {
-      safePlay(vozRef, sorteado.audio)
-    }, 300)
+    setTimeout(() => safePlay(vozRef, sorteado.audio), 400)
   }, [safePlay])
 
   const iniciar = useCallback((reinicio = false) => {
     const listaEmbaralhada = [...ITENS_ORIGINAIS].sort(() => Math.random() - 0.5)
-    
     setItensDisponiveis(listaEmbaralhada)
     setMensagem('')
-    setAlvoIcon('...')
+    setAlvoIcon('')
     setFinalizado(false)
 
     if (musicRef.current && soundOn) {
@@ -113,19 +94,19 @@ export default function Objetos() {
     if (reinicio) {
       safePlay(reinicioRef, null, () => sortearProximo(listaEmbaralhada))
     } else {
-      // Pequeno delay resolve o erro "setState synchronously within an effect"
-      setTimeout(() => {
-        safePlay(vozRef, 'audio/aila-intro.mp3', () => sortearProximo(listaEmbaralhada))
-      }, 100)
+      safePlay(vozRef, 'audio/aila-intro.mp3', () => sortearProximo(listaEmbaralhada))
     }
   }, [safePlay, sortearProximo, soundOn])
 
-  // Efeito de inicialização corrigido
+  // CORREÇÃO DO ERRO DA IMAGEM: useEffect sem setState síncrono
   useEffect(() => {
-    iniciar()
+    const timer = setTimeout(() => {
+      iniciar()
+    }, 100)
     
-    const sons = [vozRef, musicRef, errRef, fimRef, reinicioRef]
     return () => {
+      clearTimeout(timer)
+      const sons = [vozRef, musicRef, errRef, fimRef, reinicioRef]
       sons.forEach(ref => {
         if (ref.current) {
           ref.current.pause()
@@ -133,14 +114,11 @@ export default function Objetos() {
         }
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) 
+  }, [iniciar]) 
 
-  /* ===== LÓGICA DE ESCOLHA CORRIGIDA (TRIM + LOWERCASE) ===== */
   const processarEscolha = (itemClicado) => {
     if (bloqueado || finalizado || !objetivoAtual) return
 
-    // Compara nomes limpando espaços e acentos
     const nomeNormalizado = itemClicado.nome.trim().toLowerCase()
     const objetivoNormalizado = objetivoAtual.nome.trim().toLowerCase()
 
@@ -152,7 +130,7 @@ export default function Objetos() {
       safePlay(vozRef, 'audio/aila-muito-bem.mp3', () => {
         const novaLista = itensDisponiveis.filter(i => i.nome !== itemClicado.nome)
         setItensDisponiveis(novaLista)
-        setAlvoIcon('Próximo...')
+        setAlvoIcon('')
         setMensagem('')
         sortearProximo(novaLista)
       })
@@ -177,7 +155,9 @@ export default function Objetos() {
           </div>
 
           <div className={`target-zone ${bloqueado ? 'locked' : ''}`}>
-            <div className="target-display">{alvoIcon}</div>
+            <div className={`target-display ${alvoIcon ? 'pop-in' : ''}`}>
+              {alvoIcon}
+            </div>
           </div>
 
           <div className="grid-objetos">
@@ -192,7 +172,6 @@ export default function Objetos() {
               </button>
             ))}
           </div>
-
           <div className="feedback-message">{mensagem}</div>
         </div>
       </main>

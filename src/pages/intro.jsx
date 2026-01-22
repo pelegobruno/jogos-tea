@@ -146,9 +146,9 @@ export default function Intro() {
     if (audio.music.current) audio.music.current.pause()
     play(audio.boom)
 
-    // AQUI: Salva no navegador que a intro terminou
-    // Isso impede que o F5 traga o usuário para cá de novo
-    localStorage.setItem('introFinished', 'true')
+    // AQUI: Salva na sessão que a intro terminou nesta aba.
+    // sessionStorage morre quando a aba/browser fecha.
+    sessionStorage.setItem('introSession', 'active')
 
     if (flashRef.current) flashRef.current.classList.add('boom-flash')
     if (flaskRef.current) flaskRef.current.classList.add('flask-explode')

@@ -1,9 +1,18 @@
+/* Container Principal - Evita que a tela fique "floxa" */
+.objetos-page-wrapper {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Impede rolagem desnecessária */
+  display: flex;
+  flex-direction: column;
+}
+
 .objetos-container {
   width: 95%;
-  max-width: 650px;
+  max-width: 700px;
   margin: 10px auto;
   text-align: center;
-  padding: 20px;
+  padding: 15px;
   background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   border-radius: 30px;
@@ -11,60 +20,91 @@
 }
 
 .command {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: #fff;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+/* Zona de Destino - Quadrado fixo */
 .target-zone {
-  width: 150px;
-  height: 150px;
-  margin: 0 auto 25px;
+  width: 160px;
+  height: 160px;
+  margin: 0 auto 20px;
   border: 5px dashed rgba(255, 255, 255, 0.6);
   border-radius: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  overflow: hidden; /* Garante que nada saia do quadrado */
 }
 
+/* O ícone dentro do quadrado ocupa o espaço todo */
 .target-display {
-  color: #fff;
-  font-weight: bold;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5.5rem; /* Tamanho proporcional ao quadrado */
+  line-height: 1;
+}
+
+/* Animação para o ícone aparecer suavemente */
+.pop-in {
+  animation: popIcon 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIcon {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .grid-objetos {
   display: grid;
-  grid-template-columns: repeat(5, 1fr); /* 5 colunas para caber os 20 itens bem */
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
   justify-items: center;
+  max-height: 50vh; /* Limita a altura do grid para não empurrar o layout */
+  overflow-y: auto; /* Se houver muitos itens, rola apenas o grid */
+  padding: 5px;
 }
 
 .item-card-objetos {
-  width: 85px;  /* Tamanho grande original */
-  height: 85px;
+  width: 80px;
+  height: 80px;
   background: #ffffff;
+  border: none;
   border-radius: 18px;
   font-size: 2.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: grab;
+  cursor: pointer;
   box-shadow: 0 6px 0px #ced4da;
-  user-select: none;
-  transition: transform 0.1s;
+  transition: all 0.1s;
+  padding: 0;
 }
 
-.item-card-objetos:active {
-  cursor: grabbing;
-  transform: scale(1.1);
+.item-card-objetos:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #f8f9fa;
+}
+
+.item-card-objetos:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0px #ced4da;
+}
+
+.item-card-objetos:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .feedback-message {
-  margin-top: 20px;
+  margin-top: 15px;
   height: 30px;
   font-size: 1.4rem;
   color: #ffeb3b;
@@ -72,14 +112,21 @@
   text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
-/* Responsividade para celulares */
-@media (max-width: 500px) {
+/* Responsividade Celulares */
+@media (max-width: 600px) {
   .grid-objetos {
     grid-template-columns: repeat(4, 1fr);
   }
   .item-card-objetos {
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     font-size: 2.2rem;
+  }
+  .target-zone {
+    width: 120px;
+    height: 120px;
+  }
+  .target-display {
+    font-size: 4rem;
   }
 }
