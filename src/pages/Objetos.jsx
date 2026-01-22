@@ -98,12 +98,9 @@ export default function Objetos() {
     }
   }, [safePlay, sortearProximo, soundOn])
 
-  // CORREÇÃO DO ERRO DA IMAGEM: useEffect sem setState síncrono
+  // RESOLVE O ERRO DE SETSTATE NO CONSOLE
   useEffect(() => {
-    const timer = setTimeout(() => {
-      iniciar()
-    }, 100)
-    
+    const timer = setTimeout(() => iniciar(), 100)
     return () => {
       clearTimeout(timer)
       const sons = [vozRef, musicRef, errRef, fimRef, reinicioRef]
@@ -114,19 +111,14 @@ export default function Objetos() {
         }
       })
     }
-  }, [iniciar]) 
+  }, [iniciar])
 
   const processarEscolha = (itemClicado) => {
     if (bloqueado || finalizado || !objetivoAtual) return
-
-    const nomeNormalizado = itemClicado.nome.trim().toLowerCase()
-    const objetivoNormalizado = objetivoAtual.nome.trim().toLowerCase()
-
-    if (nomeNormalizado === objetivoNormalizado) {
+    if (itemClicado.nome.trim().toLowerCase() === objetivoAtual.nome.trim().toLowerCase()) {
       setBloqueado(true)
       setAlvoIcon(itemClicado.icon)
       setMensagem('Muito bem! ✨')
-
       safePlay(vozRef, 'audio/aila-muito-bem.mp3', () => {
         const novaLista = itensDisponiveis.filter(i => i.nome !== itemClicado.nome)
         setItensDisponiveis(novaLista)
@@ -147,27 +139,17 @@ export default function Objetos() {
         <h1 className="header-title">BUSCA OBJETOS</h1>
         <button className="btn-restart" disabled={bloqueado} onClick={() => iniciar(true)}>♻</button>
       </header>
-
       <main className="page">
         <div className="objetos-container">
           <div className="command">
             {finalizado ? 'Fim de Jogo!' : `Aila diz: Ache o(a) ${objetivoAtual?.nome || '...'}`}
           </div>
-
-          <div className={`target-zone ${bloqueado ? 'locked' : ''}`}>
-            <div className={`target-display ${alvoIcon ? 'pop-in' : ''}`}>
-              {alvoIcon}
-            </div>
+          <div className="target-zone">
+            <div className={`target-display ${alvoIcon ? 'pop-in' : ''}`}>{alvoIcon}</div>
           </div>
-
           <div className="grid-objetos">
             {itensDisponiveis.map(item => (
-              <button
-                key={item.nome}
-                className="item-card-objetos"
-                disabled={bloqueado}
-                onClick={() => processarEscolha(item)}
-              >
+              <button key={item.nome} className="item-card-objetos" disabled={bloqueado} onClick={() => processarEscolha(item)}>
                 {item.icon}
               </button>
             ))}
@@ -175,7 +157,6 @@ export default function Objetos() {
           <div className="feedback-message">{mensagem}</div>
         </div>
       </main>
-
       <audio ref={vozRef} preload="auto" />
       <audio ref={musicRef} src="audio/musica-terapeutica.mp3" loop preload="auto" />
       <audio ref={errRef} src="audio/aila-tente-novamente.mp3" preload="auto" />
