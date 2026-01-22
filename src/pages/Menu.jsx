@@ -19,15 +19,17 @@ export default function Menu() {
     const music = musicRef.current
     if (!music) return
 
-    music.volume = 0.3
+    music.volume = 0.2 // Volume um pouco mais baixo para não assustar
 
     if (soundOn) {
       const playPromise = music.play()
       if (playPromise !== undefined) {
         playPromise.catch(() => {
+          // Fallback para navegadores que bloqueiam áudio automático
           const enableAudio = () => {
-            if (!musicRef.current) return
-            musicRef.current.play().catch(() => {})
+            if (musicRef.current && soundOn) {
+              musicRef.current.play().catch(() => {})
+            }
             document.removeEventListener('click', enableAudio)
           }
           document.addEventListener('click', enableAudio)
@@ -49,6 +51,7 @@ export default function Menu() {
       clickRef.current.play().catch(() => {})
     }
 
+    // Pequeno delay para o som do clique tocar antes de mudar de página
     setTimeout(() => {
       navigate(rota)
     }, 200)
@@ -95,7 +98,6 @@ export default function Menu() {
     },
   ]
 
-  /* ===== JSX ===== */
   return (
     <div className="menu-wrapper">
       <header className="header-menu">
@@ -135,16 +137,16 @@ export default function Menu() {
         </div>
       </main>
 
-      {/* ===== ÁUDIOS (CAMINHOS RELATIVOS CORRIGIDOS) ===== */}
+      {/* ===== ÁUDIOS CORRIGIDOS PARA VITE/GITHUB PAGES ===== */}
       <audio
         ref={musicRef}
-        src="./audio/menu-music.mp3"
+        src="audio/menu-music.mp3" 
         loop
         preload="auto"
       />
       <audio
         ref={clickRef}
-        src="./audio/click-soft.mp3"
+        src="audio/click-soft.mp3"
         preload="auto"
       />
     </div>
