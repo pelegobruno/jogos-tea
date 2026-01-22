@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '@/styles/intro.css'
 
@@ -17,7 +17,7 @@ export default function Intro() {
   const navigate = useNavigate()
   const [started, setStarted] = useState(false)
 
-  /* ===== REFERÊNCIAS ===== */
+  /* ===== REFS ===== */
   const pressRef = useRef(null)
   const startBoxRef = useRef(null)
   const jogosRef = useRef(null)
@@ -41,88 +41,61 @@ export default function Intro() {
   }
 
   const play = (ref) => {
-    const el = ref?.current
-    if (!el) return
-    el.pause()
-    el.currentTime = 0
-    el.play().catch(() => {})
+    if (!ref?.current) return
+    ref.current.currentTime = 0
+    ref.current.play().catch(() => {})
   }
 
-  /* ================= ESTRELAS (CANVAS) ================= */
-  const initStars = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
+  /* ================= START ================= */
+  const startIntro = () => {
+    if (started) return
+    setStarted(true)
+    if (startBoxRef.current) startBoxRef.current.classList.add('start-flash-fast')
+    play(audio.uka)
+    const t = setTimeout(() => {
+      if (pressRef.current) pressRef.current.style.display = 'none'
+      startScene()
+    }, 1500)
+    intervalsRef.current.push(t)
+  }
 
-    const resize = () => {
-      if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth
-        canvasRef.current.height = window.innerHeight
+  /* ================= CENA ================= */
+  const startScene = () => {
+    play(audio.music)
+    dropTitleSequence()
+    rotatePhrases()
+    fillFlask()
+    startBubbles()
+    startStars()
+  }
+
+  /* ===== JOGOS TERAPÊUTICOS ===== */
+  const dropTitleSequence = () => {
+    if (!jogosRef.current || !terapRef.current) return
+    jogosRef.current.classList.add('drop')
+    play(audio.metal)
+    const t1 = setTimeout(() => {
+      if (terapRef.current) {
+        terapRef.current.classList.add('drop')
+        play(audio.metal)
       }
-    }
+    }, 300)
+    const t2 = setTimeout(() => piqueNTimes(jogosRef.current, 3), 1000)
+    const t3 = setTimeout(() => piqueNTimes(terapRef.current, 3), 1600)
+    const t4 = setTimeout(() => {
+      if (jogosRef.current) jogosRef.current.classList.add('title-idle')
+      if (terapRef.current) terapRef.current.classList.add('title-idle')
+    }, 3200)
+    intervalsRef.current.push(t1, t2, t3, t4)
+  }
 
-    resize()
-    window.addEventListener('resize', resize)
-
-    const stars = Array.from({ length: 160 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      s: Math.random() * 0.6 + 0.2,
-    }))
-
-    const animate = () => {
-      if (!canvasRef.current || !ctx) return
-      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-      ctx.fillStyle = 'white'
-      stars.forEach((s) => {
-        s.y += s.s
-        if (s.y > canvasRef.current.height) s.y = 0
-        ctx.fillRect(s.x, s.y, 2, 2)
-      })
-      const id = requestAnimationFrame(animate)
-      rafsRef.current.push(id)
-    }
-
-    animate()
-    return () => window.removeEventListener('resize', resize)
-  }, [])
-
-  /* ================= FINALIZAÇÃO (BIG BANG) ================= */
-  const bigBang = useCallback(() => {
-    if (audio.music.current) audio.music.current.pause()
-    play(audio.boom)
-
-    if (flashRef.current) flashRef.current.classList.add('boom-flash')
-    if (flaskRef.current) flaskRef.current.classList.add('flask-explode')
-
-    const elements = [jogosRef.current, terapRef.current, subtitleRef.current]
-    elements.forEach((el) => {
-      if (!el) return
-      el.classList.remove('title-idle', 'drop')
-      el.style.setProperty('--fx', (Math.random() * 1000 - 500).toString())
-      el.style.setProperty('--fy', (Math.random() * -1000 - 200).toString())
-      el.style.setProperty('--r', (Math.random() * 1080 - 540).toString())
-      el.classList.add('fly-away')
-    })
-
-    // Navegação segura após animação
-    const tEnd = setTimeout(() => {
-        navigate('/menu')
-    }, 2500)
-    intervalsRef.current.push(tEnd)
-  }, [navigate])
-
-  /* ================= ANIMAÇÕES DE CENA ================= */
   const piqueNTimes = (el, times) => {
     if (!el) return
     let count = 0
     const id = setInterval(() => {
-      if (!el) {
-        clearInterval(id)
-        return
-      }
+      if (!el) return
       el.classList.remove('pique')
-      void el.offsetWidth 
+      void el.offsetWidth
       el.classList.add('pique')
       play(audio.metal)
       count++
@@ -131,59 +104,64 @@ export default function Intro() {
     intervalsRef.current.push(id)
   }
 
-  const startScene = () => {
-    play(audio.music)
-
-    if (jogosRef.current) {
-        jogosRef.current.classList.add('drop')
-        play(audio.metal)
-    }
-
-    const t1 = setTimeout(() => {
-      if (terapRef.current) {
-        terapRef.current.classList.add('drop')
-        play(audio.metal)
-      }
-    }, 300)
-
-    const t2 = setTimeout(() => piqueNTimes(jogosRef.current, 3), 1000)
-    const t3 = setTimeout(() => piqueNTimes(terapRef.current, 3), 1600)
-
-    const t4 = setTimeout(() => {
-      if (jogosRef.current) jogosRef.current.classList.add('title-idle')
-      if (terapRef.current) terapRef.current.classList.add('title-idle')
-    }, 3200)
-
+  /* ===== FRASES ===== */
+  const rotatePhrases = () => {
     let i = 0
-    const idFrase = setInterval(() => {
+    const id = setInterval(() => {
       if (!subtitleRef.current) return
       i = (i + 1) % phrases.length
-      subtitleRef.current.style.opacity = '0'
-      setTimeout(() => {
+      subtitleRef.current.style.opacity = 0
+      const t = setTimeout(() => {
         if (subtitleRef.current) {
           subtitleRef.current.textContent = phrases[i]
-          subtitleRef.current.style.opacity = '1'
+          subtitleRef.current.style.opacity = 1
         }
       }, 400)
+      intervalsRef.current.push(t)
     }, 4000)
+    intervalsRef.current.push(id)
+  }
 
-    let startTime = null
-    const loopFill = (t) => {
+  /* ===== FRASCO ===== */
+  const fillFlask = () => {
+    let start = null
+    const loop = (t) => {
       if (!liquidRef.current) return
-      if (!startTime) startTime = t
-      const elapsed = (t - startTime) / 1000
-      const progress = Math.min((elapsed / TOTAL_TIME) * 100, 100)
-      liquidRef.current.style.height = `${progress}%`
-
+      if (!start) start = t
+      const elapsed = (t - start) / 1000
+      liquidRef.current.style.height = Math.min((elapsed / TOTAL_TIME) * 100, 100) + '%'
       if (elapsed < TOTAL_TIME) {
-        rafsRef.current.push(requestAnimationFrame(loopFill))
+        const id = requestAnimationFrame(loop)
+        rafsRef.current.push(id)
       } else {
         bigBang()
       }
     }
-    rafsRef.current.push(requestAnimationFrame(loopFill))
+    const id = requestAnimationFrame(loop)
+    rafsRef.current.push(id)
+  }
 
-    const idBubbles = setInterval(() => {
+  /* ================= BIG BANG ================= */
+  const bigBang = () => {
+    if (audio.music.current) audio.music.current.pause()
+    play(audio.boom)
+    if (flashRef.current) flashRef.current.classList.add('boom-flash')
+    if (flaskRef.current) flaskRef.current.classList.add('flask-explode')
+    ;[jogosRef.current, terapRef.current, subtitleRef.current].forEach((el) => {
+      if (!el) return
+      el.classList.remove('title-idle', 'drop')
+      el.style.setProperty('--fx', (Math.random() * 1000 - 500).toString())
+      el.style.setProperty('--fy', (Math.random() * -1000 - 200).toString())
+      el.style.setProperty('--r', (Math.random() * 1080 - 540).toString())
+      el.classList.add('fly-away')
+    })
+    const t = setTimeout(() => navigate('/menu'), 2500)
+    intervalsRef.current.push(t)
+  }
+
+  /* ================= AUX ================= */
+  const startBubbles = () => {
+    const id = setInterval(() => {
       if (!bubbleLayerRef.current) return
       const b = document.createElement('div')
       b.className = 'bubble'
@@ -191,47 +169,61 @@ export default function Intro() {
       bubbleLayerRef.current.appendChild(b)
       setTimeout(() => b.remove(), 3000)
     }, 500)
-
-    intervalsRef.current.push(t1, t2, t3, t4, idFrase, idBubbles)
+    intervalsRef.current.push(id)
   }
 
-  const startIntro = () => {
-    if (started) return
-    setStarted(true)
-    if (startBoxRef.current) startBoxRef.current.classList.add('start-flash-fast')
-    play(audio.uka)
-    setTimeout(() => {
-      if (pressRef.current) pressRef.current.style.display = 'none'
-      startScene()
-    }, 1500)
-  }
-
-  useEffect(() => {
-    const cleanupStars = initStars()
-    return () => {
-      if (cleanupStars) cleanupStars()
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      intervalsRef.current.forEach(id => {
-          clearInterval(id)
-          clearTimeout(id)
-      })
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      rafsRef.current.forEach(cancelAnimationFrame)
+  const startStars = () => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    const resize = () => {
+      if (canvasRef.current) {
+        canvasRef.current.width = window.innerWidth
+        canvasRef.current.height = window.innerHeight
+      }
     }
-  }, [initStars])
+    resize()
+    window.addEventListener('resize', resize)
+    const stars = Array.from({ length: 160 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      s: Math.random() * 0.6 + 0.2,
+    }))
+    const loop = () => {
+      if (!canvasRef.current) return
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.fillStyle = 'white'
+      stars.forEach((s) => {
+        s.y += s.s
+        if (s.y > canvas.height) s.y = 0
+        ctx.fillRect(s.x, s.y, 2, 2)
+      })
+      const id = requestAnimationFrame(loop)
+      rafsRef.current.push(id)
+    }
+    loop()
+  }
 
+  /* ===== LIMPEZA ===== */
+  useEffect(() => {
+    return () => {
+      intervalsRef.current.forEach(id => {
+        clearInterval(id)
+        clearTimeout(id)
+      })
+      rafsRef.current.forEach(cancelAnimationFrame)
+      window.removeEventListener('resize', startStars)
+    }
+  }, [])
+
+  /* ================= JSX ================= */
   return (
     <div className="intro-page">
       <div id="explosion-flash" ref={flashRef}></div>
-
       <div id="press-start" ref={pressRef} onClick={startIntro}>
-        <div className={`start-box ${started ? 'start-flash-fast' : ''}`} ref={startBoxRef}>
-          ▶ PRESS START ◀
-        </div>
+        <div className="start-box" ref={startBoxRef}>▶ PRESS START ◀</div>
       </div>
-
       <canvas id="stars-canvas" ref={canvasRef}></canvas>
-
       <main className="scene">
         <h1 className="title">
           <span ref={jogosRef}>JOGOS</span>
@@ -246,10 +238,13 @@ export default function Intro() {
         </div>
       </main>
 
-      <audio ref={audio.uka} src="/audio/intro/aku_aku.mp3" preload="auto" />
-      <audio ref={audio.music} src="/audio/intro/1-01. N. Sanity Beach.mp3" preload="auto" />
+      {/* IMPORTANTE: Como você definiu base: '/jogos-tea/' no vite.config.js, 
+          não comece o src com barra (/). Use apenas 'audio/...' 
+      */}
+      <audio ref={audio.uka} src="audio/intro/aku_aku.mp3" preload="auto" />
+      <audio ref={audio.music} src="audio/intro/1-01. N. Sanity Beach.mp3" preload="auto" />
       <audio ref={audio.metal} src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto" />
-      <audio ref={audio.boom} src="/audio/intro/bomba.mp3" preload="auto" />
+      <audio ref={audio.boom} src="audio/intro/bomba.mp3" preload="auto" />
     </div>
   )
 }
